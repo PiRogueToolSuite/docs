@@ -1,4 +1,4 @@
-# PiRogue Tool Suite — Documentation
+# PiRogue Tool Suite - Documentation
 
 Documentation site for the [PiRogue Tool Suite](https://pts-project.org), built with [Docusaurus](https://docusaurus.io/).
 

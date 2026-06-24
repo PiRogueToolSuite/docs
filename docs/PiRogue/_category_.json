@@ -1,0 +1,8 @@
+{
+  "label": "PiRogue",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "PiRogue is originally a Raspberry Pi-based network router for capturing and analysing network traffic in real-time."
+  }
+}

@@ -1,0 +1,74 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CaptionedImage from '@site/src/components/CaptionedImage';
+
+
+The PiRogue ecosystem has been extended to cover more use cases, and it's now
+possible to deploy it on a machine featuring **two interfaces**. The
+requirements are the following:
+
+ - a Debian 12 installation on a physical or virtual machine;
+ - using the `amd64` or `arm64` architecture;
+ - with at least 4GB of RAM and 40GB of disk;
+ - an initial network configuration allowing internet access.
+
+
+The operating mode is selected automatically during the initial installation,
+based on the available interfaces. Let's have a look at the logic:
+
+ 1. The external interface is determined by checking which interface is used to
+    access some IP on the internet.
+ 2. If there's another interface that is tagged as a Wi-Fi one, then the “Access
+    Point” mode is selected, and that interface is used for the isolated
+    network.
+ 3. Otherwise, if there's another interface that is tagged as an Ethernet one,
+    then the “Appliance” mode is used, and that interface is used for the
+    isolated network.
+ 4. Finally, if there was only a single interface (meaning the requirements
+    documented above weren't met in the first place), a fallback to “VPN” mode
+    occurs. This mode is quite different, and is actually documented in the
+    following section.
+
+Installation steps can be split into 2 phases: making sure the system is
+up-to-date to start with (this isn't specific to the PiRogue ecosystem), then
+configuring the PiRogue PPA and installing PiRogue packages.
+
+```shell {title="Make sure the system is up-to-date"}
+sudo apt-get update
+sudo apt-get dist-upgrade
+```
+
+```shell {title="Configure the PiRogue PPA and install PiRogue packages"}
+sudo apt-get install wget
+sudo wget -O /etc/apt/sources.list.d/pirogue.list https://pts-project.org/debian-12/pirogue.list
+sudo wget -O /etc/apt/trusted.gpg.d/pirogue.gpg   https://pts-project.org/debian-12/pirogue.gpg
+sudo apt-get update
+sudo apt-get install pirogue-base
+```
+
+During the installation, if prompted, you will have to answer:
+
+- `Yes` to allow non-superusers to capture network traffic.
+
+Afterwards, the complete configuration can be inspected using the following
+command (no need to be `root`):
+
+    pirogue-admin-client system get-configuration
+
+Important variables:
+
+ - `SYSTEM_OPERATING_MODE` confirms the operating mode.
+ - `DASHBOARD_PASSWORD` is the password for the dashboard, generated during the install.
+ - `WIFI_PASSPHRASE` is the passphrase used for the Wi-Fi network, when
+   operating in “access point” mode, also generated during the install.
+ - `EXTERNAL_ADDRESS` and `SYSTEM_HOSTNAME` is where the dashboard is exposed,\
+   it's accessible at **https://`EXTERNAL_ADDRESS`/dashboard**\
+   or **https://`SYSTEM_HOSTNAME`.local/dashboard**.\
+   In both cases, unless you [enable public external access](/docs/PiRogue/version-2.x/configuration#make-the-pirogue-accessible-from-the-internet), you have to [trust the default self-signed certificate](/cookbooks/pirogue-trust-self-signed-certificate/).
+
+See [Configuration](/docs/PiRogue/version-2.x/configuration) for instructions
+on how to change those generated secrets.
+
+The main difference between “access point” and “appliance” modes is how the
+connectivity is provided on the isolated network (with or without `hostapd` to
+manage the Wi-Fi network).

@@ -1,0 +1,63 @@
+---
+sidebar_position: 3
+---
+
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Integrations
+
+In the Threatr administration panel, create new entries for the 3rd-party vendors in the *Vendor Credentials* menu.
+
+<Tabs groupId="api-keys">
+
+    <TabItem value="virustotal" label="VirusTotal">
+
+Use the vendor identifier `vt` and set the credentials
+  ```json
+  {"api_key": "your API key"}
+  ```
+
+  </TabItem>
+    <TabItem value="otx-alien-vault" label="OTX Alien Vault">
+
+Use the vendor identifier `otx` and set the credentials
+  ```json
+  {"api_key": "your API key"}
+  ```
+
+  </TabItem>
+    <TabItem value="shodan" label="Shodan">
+
+Use the vendor identifier `shodan` and set the credentials
+  ```json
+  {"api_key": "your API key"}
+  ```
+
+  </TabItem>
+    <TabItem value="scarlet-shark" label="Scarlet Shark">
+
+Use the vendor identifier `scarlet_shark` and set the credentials
+  ```json
+  {"api_key": "your API key"}
+  ```
+
+  </TabItem>
+    <TabItem value="misp" label="MISP">
+
+Use the vendor identifier `misp` and set the credentials
+  ```json
+  {"api_key": "your API key", "url":"url of the MISP server"}
+  ```
+
+  </TabItem>
+
+</Tabs>
+
+
+:::tip[Did you know?]
+
+You can add multiple API keys for a same vendor, Threatr will do a round-robin on them. To do so, add multiple *Vendor Credentials* for the same vendor identifier. This does not apply to MISP.
+
+:::

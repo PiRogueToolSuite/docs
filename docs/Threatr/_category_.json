@@ -1,0 +1,8 @@
+{
+  "label": "Threatr",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Threatr is the threat intelligence platform that powers Colander's external source lookups."
+  }
+}

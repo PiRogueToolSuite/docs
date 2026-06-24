@@ -1,0 +1,79 @@
+
+The PiRogue ecosystem has also been extended to support another operating mode,
+where a server is made accessible over the internet, offering VPN connectivity.
+A typical installation would be a dedicated server or a VPS, with a single
+interface exposed on the internet.
+
+
+:::tip[Hosting providers compatibility]
+
+* <span style={{color: '#41C067'}}>✔</span> [Hetzner](https://www.hetzner.com/)
+* <span style={{color: '#41C067'}}>✔</span> [Scaleway](https://www.scaleway.com/)
+* <span style={{color: '#EE5080'}}>✘</span> Digital Ocean (incompatible)
+
+:::
+
+The requirements are the same as in the previous section:
+
+ - a Debian 12 installation on a physical or virtual machine;
+ - using the `amd64` or `arm64` architecture;
+ - with at least 4GB of RAM and 40GB of disk;
+ - an initial network configuration allowing internet access.
+
+With such a configuration, VPN is automatically selected as the operating mode,
+and WireGuard is set up automatically.
+
+The initial installation steps are the same as in the previous section:
+
+```shell {title="Make sure the system is up-to-date"}
+sudo apt-get update
+sudo apt-get dist-upgrade
+```
+
+```shell {title="Configure the PiRogue PPA and install PiRogue packages"}
+sudo apt-get install wget
+sudo wget -O /etc/apt/sources.list.d/pirogue.list https://pts-project.org/debian-12/pirogue.list
+sudo wget -O /etc/apt/trusted.gpg.d/pirogue.gpg   https://pts-project.org/debian-12/pirogue.gpg
+sudo apt-get update
+sudo apt-get install pirogue-base
+```
+
+During the installation, if prompted, you will have to answer:
+
+- `Yes` to allow non-superusers to capture network traffic.
+
+Afterwards, the complete configuration can be inspected using the following
+command (no need to be `root`):
+
+```shell
+pirogue-admin-client system get-configuration
+```
+
+There are two big differences though:
+
+ 1. Since the server is accessible from the internet, we want to secure the
+    dashboard access with a TLS layer.
+ 2. We need to create WireGuard peers, and configure the VPN on e.g. phones to be
+    analyzed.
+
+Here, we assume:
+ * a DNS record exists already, pointing to the public IP address of the
+PiRogue.
+ * port `80` and `443` from your public IP address fully translate to your PiRogue respective ports
+
+Requesting a certificate and adjusting the web server configuration can
+be done this way:
+
+```shell
+pirogue-admin-client external-network enable-public-access --domain pirogue.example.org --email contact@example.org
+```
+
+The dashboard is available at `https://pirogue.example.org/dashboard` afterwards.
+
+To create a VPN peer, run the following commands, then scan the QR code using
+the WireGuard application on the phone, and enable the VPN:
+
+```shell
+pirogue-admin-client vpn add-peer
+pirogue-admin-client vpn get-peer-config 2 | qrencode -t ANSIUTF8
+```

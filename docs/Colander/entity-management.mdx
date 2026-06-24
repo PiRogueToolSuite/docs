@@ -1,0 +1,138 @@
+---
+sidebar_position: 7
+---
+
+
+import CaptionedImage from '@site/src/components/CaptionedImage';
+
+# Entity management
+
+## Entity creation
+Colander offers 4 ways to create new entities, each of them offering different level of details. 
+
+### Graph workspace
+Users can create new entities, one at a time, directly from the knowledge graph. 
+
+<CaptionedImage src="/img/colander/entity_management/kg_create_entity.png" alt="Create a new entity within the knowledge graph" caption="Create a new entity within the knowledge graph" align="center"/>
+
+### Collect workspace
+Users can create new entities, multiple at the same time, directly from the *Collect* workspace. 
+
+<CaptionedImage src="/img/colander/entity_management/quick_collect.png" alt="Quickly create multiple new entities" caption="Quickly create multiple new entities" align="center"/>
+
+### Entity creation form
+Finally, users can create new entities, one at a time, using the different entity creation forms available in the *Collect* workspace. This way is the one offering the higher level of details.
+
+<CaptionedImage src="/img/colander/entity_management/attributes.png" alt="Create a new entity" caption="Create a new entity" align="center"/>
+
+### REST API
+Refer to the [RESP API documentation](/docs/Colander/rest-api).
+
+## Entity attributes
+Users can add custom attributes to entities of type:
+* Artifact
+* Device
+* Observable
+* Event
+
+Some sub-types such as *IP v4* come with a set of suggested attributes such as *address block* or *asn*.
+
+<CaptionedImage src="/img/colander/entity_management/attributes.png" alt="Overview of an entity having custom attributes" caption="Overview of an entity having custom attributes" align="center"/>
+
+Entities that were imported or enriched from the *Investigate* workspace usually come with additional attributes extracted from external services. 
+
+Entity attributes are exported in feeds along with the all the other information about the entity they belong to.
+
+## Types of entities
+Each type of entity can be more precisely defined. For example, Colander comes with a set of sub-types such as Observable / IP v4, Artifact / Android backup, etc.
+
+### Actors
+Entities of this type represent individuals, organizations or groups that can perform actions in the digital environment.
+
+<CaptionedImage src="/img/colander/entity_management/actor.png" alt="Create a new actor" caption="Create a new actor" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Device* is operated by an *Actor*
+* *Observable* is operated by an *Actor*
+
+### Artifacts
+Entities of this type represent files or any digital trace left behind by actors or the execution of a software.
+
+<CaptionedImage src="/img/colander/entity_management/artifact.png" alt="Create a new artifact" caption="Create a new artifact" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Artifact* has been extracted from a *Device*
+* *Observable* has been extracted from an *Artifact*
+* *Event* has been been extracted from an *Artifact*
+* *Fragment of data* has been extracted from an *Artifact*
+
+### Devices
+Entities of this type represent computers, smartphones, tablets, and other electronic devices that store and transmit data.
+
+<CaptionedImage src="/img/colander/entity_management/device.png" alt="Create a new device" caption="Create a new device" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Device* is operated by an *Actor*
+* *Event* has been observed on a *Device*
+* *Artifact* has been extracted from a *Device*
+
+### Detection rules
+Entities of this type represent sets of criteria used to identify suspicious activity or potential threats.
+
+<CaptionedImage src="/img/colander/entity_management/detection_rule.png" alt="Create a new detection rule" caption="Create a new detection rule" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Event* has been detected by a *Detection rule*
+
+### Threats
+Entities of this type represent potential risks or harmful actions that can target individuals, organizations, or systems.
+
+<CaptionedImage src="/img/colander/entity_management/threat.png" alt="Create a new threat" caption="Create a new threat" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Observable* indicates a *Threat*
+
+### Observables
+Entities of this type represent specific pieces of evidence or information that can be used to identify a technical information.
+
+<CaptionedImage src="/img/colander/entity_management/observable.png" alt="Create a new observable" caption="Create a new observable" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Observable* is operated by an *Actor*
+* *Observable* has been extracted from an *Artifact*
+* *Observable* indicates a *Threat*
+* *Event* involves a set of *Observable*
+
+### Events
+Entities of this type represent recorded occurrences of actions or changes in a system.
+
+<CaptionedImage src="/img/colander/entity_management/event.png" alt="Create a new event" caption="Create a new event" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Event* involves a set of *Observable*
+* *Event* has been detected by a *Detection rule*
+* *Event* has been been extracted from an *Artifact*
+
+### Fragment of data
+Entities of this type represent small pieces of data that can be used to reconstruct a larger dataset or provide insights into the activities of actors or systems.
+
+<CaptionedImage src="/img/colander/entity_management/fragment.png" alt="Create a new fragment of data" caption="Create a new fragment of data" align="center"/>
+
+#### Tight relationships
+Colander supports the following tight relationships which represents the bare minimum level of information needed to represent relationships between entities:
+
+* *Fragment of data* has been extracted from an *Artifact*

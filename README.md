@@ -28,53 +28,6 @@ Generates static output to `build/`. Preview the production build locally:
 npm run serve
 ```
 
-## Publishing to GitHub
-
-### First push
-
-```bash
-git init
-git add .
-git commit -m "Initial documentation"
-git branch -M main
-git remote add origin https://github.com/PiRogueToolSuite/pts-docs.git
-git push -u origin main
-```
-
-### Subsequent updates
-
-```bash
-git add .
-git commit -m "Update documentation"
-git push
-```
-
-### What to exclude
-
-Add a `.gitignore` at the root with at least:
-
-```
-node_modules/
-build/
-.docusaurus/
-```
-
-### Deploy to GitHub Pages
-
-Set `url` and `organizationName`/`projectName` in `docusaurus.config.js` to match your repository, then:
-
-```bash
-GIT_USER=<your-github-username> npm run deploy
-```
-
-This builds the site and pushes it to the `gh-pages` branch automatically.
-
-For SSH authentication:
-
-```bash
-USE_SSH=true npm run deploy
-```
-
 ## Project structure
 
 ```

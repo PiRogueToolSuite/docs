@@ -1,0 +1,67 @@
+---
+sidebar_position: 14.6
+---
+
+
+# Device monitoring
+
+Device monitoring lets you analyze the network traffic of a device with an [enrolled PiRogue](/docs/Colander/advanced/pirogue-fleet) and see the results directly in your case: the network flows of the device and the security alerts raised by [Suricata](https://suricata.io). It is designed to help organizations assist people at risk who do not have physical access to a PiRogue, using the PiRogue as an [emergency VPN server](/docs/PiRogue/installation).
+
+## How it works
+
+1. You create a *monitoring* in a case: which [device](/docs/Colander/entity-management#devices) is monitored, with which PiRogue and for how long.
+2. The person connects the device to the PiRogue, for instance with the WireGuard application by scanning a QR code.
+3. The traffic of the device goes through the PiRogue, which analyzes it.
+4. The PiRogue [collects](/docs/Mongoose/overview) the network flows and Suricata alerts, enriches them and sends them to Colander.
+5. Flows and alerts are displayed in the monitoring and attached to your case.
+
+When the monitoring ends, the PiRogue stops sending events to Colander.
+
+## Create a monitoring
+
+Open a case and select **Device Monitoring** in the workspace menu. The page lists all the monitorings of the case. To create one, fill in the form:
+
+| Field | Description |
+|-------|-------------|
+| **Description** | Free text to add more details. |
+| **Device** | The device to monitor, chosen among the devices of the case. Create it first in the *Collect* workspace. |
+| **Duration** | Number of days the monitoring stays active, between 1 and 14. |
+| **PiRogue** | The PiRogue to use, chosen among your enrolled PiRogues and those shared with your teams. Its operating mode is displayed next to its name. |
+| **IP filter** | Optional IPv4 or IPv6 address. When set, only the flows and alerts involving this address are collected. |
+
+## Connect the device with a VPN peer
+
+When the PiRogue operates in *VPN* mode, the monitored device connects to it with WireGuard. In the details of the monitoring:
+
+* click **Create** in the **VPN Peer** row to create a peer on the PiRogue. Colander automatically sets the IP filter to the address of the peer
+* click **View** to display the WireGuard configuration of the peer, as a **QR code** to scan with the WireGuard mobile application, and as text
+* click **Release** to delete the peer from the PiRogue when you no longer need it
+
+## Start and stop a monitoring
+
+A monitoring goes through the following states:
+
+| Status | Meaning |
+|--------|---------|
+| **Not started** | The monitoring exists but does not collect anything yet. |
+| **In progress** | The PiRogue collects and sends events to Colander. |
+| **Finished** | The monitoring has been stopped. |
+| **Failed** | The monitoring could not be completed. |
+
+Use the controls of the monitoring to start or stop it. If the monitoring cannot be started or stopped, Colander displays the error returned by the PiRogue. A monitoring stops automatically once its duration is over.
+
+## Analyze the network flows and alerts
+
+The details of a monitoring display the **Network DPIs and Alerts** collected so far, in a single place. Alerts are linked to the flows they were raised for through the [Community ID](/docs/Mongoose/correlation#correlating-events-with-the-community-id).
+
+The list of flows shows for each one the time, the application and its category, the protocol, the **risk**, the source, the destination and the size of the exchange. The risk summarizes the alerts raised for the flow: normal, suspicious or critical, see [Understanding the risk score](/docs/Mongoose/correlation#understanding-the-risk-score). Click a flow to get its details: duration, direction, requested server name and geolocation of the hosts. The alerts show their severity, the signature that matched and the involved hosts.
+
+You can look up the IP addresses of a flow in [Threatr](/docs/Colander/advanced/external-sources) to get threat intelligence about them, and import the selected flow into the case as entities.
+
+{/* TODO(verify): the Threatr lookup and "import the flow into the case" actions come from monthly report n45 (Jan 2026); confirm their location in the UI and the entity types created by the import. Also verify the required PiRogue version (pirogue-base) and that events are forwarded by Mongoose's webhook forwarder. */}
+
+## Requirements
+
+* The PiRogue must be [enrolled](/docs/Colander/advanced/pirogue-fleet) and its access token must allow managing device monitorings.
+* Colander must be reachable from the PiRogue, since the PiRogue sends the events to Colander.
+* To monitor a device remotely, the PiRogue must operate in [VPN mode](/docs/PiRogue/version-2.x/configuration#operating-modes) and be accessible from the Internet.

@@ -2,12 +2,98 @@
 sidebar_position: 1
 ---
 
-# Mongoose
+
+import CaptionedImage from '@site/src/components/CaptionedImage';
+
+# Overview
 
 <div style={{textAlign: 'center', margin: '1.5rem 0'}}>
   <img src="/img/logos/mongoose.svg" alt="Mongoose logo" style={{width: '120px', height: '120px'}} />
 </div>
 
-Mongoose is a mobile device forensics and artifact management tool integrated with the PiRogue Tool Suite ecosystem.
+<CaptionedImage src="/img/mongoose/diagram.png" alt="Mongoose pipeline" align="center"/>
 
-Documentation for Mongoose is coming soon.
+**Mongoose** is a Python daemon and library for collecting, enriching, storing and forwarding network events from [Suricata](https://suricata.io) and [NFStream](https://www.nfstream.org).
+
+It runs a thread-safe publish/subscribe pipeline (`ProcessingQueue`) where collectors publish raw events to topics and subscribers (the enricher, the SQLite store and the forwarders) consume them concurrently.
+
+## Key features
+
+* **Modular collectors**: Suricata EVE (alerts and netflow via a Unix socket) and NFStream (live packet capture from a network interface).
+* **Automatic enrichment**: traffic direction (inbound / outbound / local), Community ID calculation, reverse DNS hostname lookup, event type classification and flow risk scoring via a configurable severity cache.
+* **GeoIP enrichment**: MaxMind (GeoLite2-ASN, GeoLite2-City, GeoLite2-Country) and IP66 databases, with daily automatic database updates.
+* **Pluggable forwarders**: local file output, HTTP(S) webhooks (immediate, bulk or periodic modes with retry logic and multiple authentication methods) and Discord (rich embed formatting).
+* **Topic filtering**: forwarders can be scoped to specific topics and filtered by event attributes.
+* **Drop-in webhook configuration**: new webhook forwarders can be added at runtime by dropping a YAML file into a watched directory, no restart required.
+* **SQLite storage**: enriched events are persisted with configurable history pruning by record count or age.
+* **Sharded LRU cache**: thread-safe severity cache with optional TTL used for flow risk scoring.
+* **Singleton engine**: a single `Engine` instance manages the full component lifecycle (start, stop, reload).
+* **Systemd and PiRogue integration**: the CLI daemon supports `sd_notify` and reads the isolated interface from `pirogue-admin-client` when available.
+
+## Pipeline topics
+
+Events flow through the following publish/subscribe topics:
+
+| Topic | Description |
+|-------|-------------|
+| `network-dpi` | Raw DPI flows from NFStream |
+| `network-alert` | Raw Suricata alerts |
+| `network-flow` | Raw Suricata netflow records |
+| `enriched-network-dpi` | Enriched DPI flows |
+| `enriched-network-alert` | Enriched Suricata alerts |
+| `enriched-network-flow` | Enriched netflow records |
+
+## Installation
+
+Install in a virtual environment:
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+```
+
+:::tip[Did you know?]
+
+On a PiRogue, Mongoose is packaged as the `pirogue-mongoose` service. It is started before Suricata, see [Suricata integration](/docs/Mongoose/suricata-integration#startup-order).
+
+:::
+
+## CLI usage
+
+The package installs a `mongoosed` daemon entry-point:
+
+```bash
+# show top-level help
+mongoosed --help
+
+# run with a configuration file
+mongoosed --config /etc/mongoose/mongoose.yaml
+
+# override the network interface used by NFStream
+mongoosed --config mongoose.yaml --interface eth0
+
+# set logging verbosity
+mongoosed --config mongoose.yaml --logging-level DEBUG
+```
+
+## Python library usage
+
+```python
+import time
+from mongoose.core.engine import Engine
+
+engine = Engine("config.yaml")
+engine.start()
+time.sleep(6)
+engine.stop()
+```
+
+## What's next?
+
+* [Configuration](/docs/Mongoose/configuration): collectors, enrichment, forwarders and storage settings.
+* [Suricata integration](/docs/Mongoose/suricata-integration): configure Suricata to send its events to Mongoose.
+* [Enrichment](/docs/Mongoose/enrichment): what each enricher adds to the events.
+* [Data correlation](/docs/Mongoose/correlation): link alerts to flows with the Community ID and the risk score.
+* [Data models](/docs/Mongoose/data-models): every field of the Network DPI and Network Alert records.
+* [Data queries](/docs/Mongoose/data-queries): SQL query examples.
+* [Development](/docs/Mongoose/development): set up a development environment.

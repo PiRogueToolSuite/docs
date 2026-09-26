@@ -9,6 +9,10 @@ import SetupPiRogueMachine from './partials/installing-pirogue-on-your-computer.
 import SetupPiRogueVPN from './partials/installing-pirogue-vpn.mdx';
 
 
+# Installation
+
+PiRogue supports three operating modes, depending on your needs. Pick the setup that matches your hardware below.
+
 :::caution[Breaking changes]
 
 The newer version (`>=2.x`) has implemented significant changes to the dashboard and WiFi configuration, resulting in compatibility issues with previous setups. To know the version of your PiRogue, simply check the version of the package `pirogue-base`.
@@ -51,12 +55,14 @@ If you want to change the passwords, please refer to the [configuration document
 
 :::
 
-# Installation
+## Operating modes
 
-PiRogue supports different modes based on your need and your application. We have three different operation modes as seen in the image below.
+The three operating modes are shown in the image below.
 
 
 <CaptionedImage src="/img/pirogue/pirogue-operation-modes.webp" alt="PiRogue operating modes" align="center"/>
+
+## Choose your setup
 
 <Tabs>
 
@@ -65,11 +71,11 @@ PiRogue supports different modes based on your need and your application. We hav
   <SetupPiRogueRPI/>
   </TabItem>
   
-  <TabItem value="PiRogue-Machine" label="Setup PiRogue on a Computer" default>
+  <TabItem value="PiRogue-Machine" label="Setup PiRogue on a Computer">
    <SetupPiRogueMachine/>
   </TabItem>
 
-  <TabItem value="PiRogue-VPN" label="Setup PiRogue as a VPN" default>
+  <TabItem value="PiRogue-VPN" label="Setup PiRogue as a VPN">
    <SetupPiRogueVPN/>
   </TabItem>
 </Tabs>

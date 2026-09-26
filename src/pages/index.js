@@ -25,7 +25,7 @@ function HomepageHeader() {
             </div>
           </div>
           <div style={{flexShrink: 0}}>
-            <img src="/img/jojo-le-piranha.svg" alt="Jojo le Piranha — PTS mascot" style={{width: '200px', height: '200px', objectFit: 'contain'}} />
+            <img src="/img/jojo-le-piranha.svg" alt="Jojo le Piranha, the PTS mascot" style={{width: '200px', height: '200px', objectFit: 'contain'}} />
           </div>
         </div>
       </div>
@@ -35,8 +35,8 @@ function HomepageHeader() {
 
 function ToolCard({title, description, href, logo}) {
   return (
-    <div className="col col--3">
-      <div className="card" style={{height: '100%', padding: '1.5rem'}}>
+    <div className={styles.toolCardWrapper}>
+      <div className={clsx('card', styles.toolCard)}>
         <div className="card__header" style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
           <img src={logo} alt={title + ' logo'} style={{width: '2.5rem', height: '2.5rem', objectFit: 'contain'}} />
           <Heading as="h3" style={{margin: 0}}>
@@ -61,12 +61,12 @@ export default function Home() {
   return (
     <Layout
       title={siteConfig.title}
-      description="PiRogue Tool Suite — open-source digital forensics and network traffic analysis platform for civil society organizations.">
+      description="PiRogue Tool Suite is an open-source digital forensics and network traffic analysis platform for civil society organizations.">
       <HomepageHeader />
       <main>
-        <section style={{padding: '3rem 0'}}>
+        <section className={styles.toolsSection}>
           <div className="container">
-            <div className="row">
+            <div className={styles.toolGrid}>
               <ToolCard
                 title="PiRogue"
                 description="Raspberry Pi-based network router for capturing and analysing mobile device traffic in real-time."
@@ -75,7 +75,7 @@ export default function Home() {
               />
               <ToolCard
                 title="Colander"
-                description="Case and digital investigation platform — manage evidence, knowledge, and team collaboration."
+                description="Case and digital investigation platform to manage evidence, knowledge, and team collaboration."
                 href="/docs/Colander/overview"
                 logo="/img/logos/colander.svg"
               />
@@ -86,9 +86,21 @@ export default function Home() {
                 logo="/img/logos/threatr.svg"
               />
               <ToolCard
+                title="Mandolin"
+                description="File analysis micro-service to extract content, scan with antivirus and apply Yara rules, offline."
+                href="/docs/Mandolin/overview"
+                logo="/img/logos/mandolin.png"
+              />
+              <ToolCard
+                title="Octopus"
+                description="Dynamic analysis framework for Android apps: instrument apps with Frida, capture traffic and decrypt TLS."
+                href="/docs/Octopus/overview"
+                logo="/img/logos/octopus.png"
+              />
+              <ToolCard
                 title="Mongoose"
-                description="Mobile device forensics and artifact management tool integrated with the PTS ecosystem."
-                href="/docs/Mongoose"
+                description="Collect, enrich, store and forward Suricata alerts and network flows from the PiRogue."
+                href="/docs/Mongoose/overview"
                 logo="/img/logos/mongoose.svg"
               />
             </div>

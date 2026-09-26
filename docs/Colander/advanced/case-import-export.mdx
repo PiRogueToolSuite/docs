@@ -1,0 +1,70 @@
+---
+sidebar_position: 6.5
+---
+
+
+# Import and export a case
+
+Colander can export a whole case as an archive and import it back, on the same instance or on another one. It allows you to transfer a case from one organization to another, to keep a copy of a case, or to move your investigations to a new Colander server.
+
+:::info
+
+Archives are different from [knowledge feeds](/docs/Colander/advanced/share-knowledge). A feed exposes the knowledge of a case in a standard format (JSON, STIX2, MISP, CSV, etc.) meant to be consumed by other tools. An archive contains everything needed to recreate the case in Colander: the entities, their relations, and the files of the artifacts.
+
+:::
+
+## Export a case
+
+Archives are created and downloaded from the case list. Each case has an **Archives** menu:
+
+* the menu lists the archives that have already been generated for the case, from the most recent to the oldest. Click one to download it
+* an archive being generated is displayed with a blinking icon and cannot be downloaded yet
+* click **Generate a new one** to request the creation of a new archive
+
+The archive is generated in the background, as it can take some time for large cases. When it is ready, the owner of the case receives an email with a link to the case, and the archive appears in the **Archives** menu.
+
+:::note
+
+Emails are only sent when the email settings of your Colander instance are configured, see [Deployment](/docs/Colander/deployment). Otherwise, come back to the **Archives** menu to check whether the archive is ready.
+
+:::
+
+The archive is a ZIP file named after the case and the date of the export, for example `Name of my case - 2025-11-27T18_36+00_00.zip`. Only the users who can contribute to the case are allowed to download its archives.
+
+### Content of an archive
+
+| File | Description |
+|------|-------------|
+| `manifest.json` | Date of the export and list of the files contained in the archive. |
+| `data.json` | The case itself. |
+| `<Type>/<id>/data.json` | One folder per entity (actors, artifacts, devices, observables, events, etc.) and per relation, with its data. |
+| `<Type>/<id>/file.<ext>` | The file of an artifact. |
+| `<Type>/<id>/thumbnail.png` | The thumbnail of an entity, when it has one. |
+
+## Import a case
+
+###### 1. Open the import tool
+In the case creation form, click **import an archive** next to *New case*.
+
+###### 2. Choose the archive
+Click **Choose** and select the ZIP file previously exported from Colander. The archive is parsed in your browser and its integrity is checked: an archive without a manifest is rejected with the message *"No manifest information found"*.
+
+###### 3. Review what will be imported
+Colander displays the name, the creation and update dates and the description of the case, followed by the **case content**: all the items of the archive grouped by super type, with their name, type, whether they have a thumbnail or a file, and their status. An item whose identifier does not match its path in the archive is reported as *ID Mismatch*.
+
+###### 4. Import the case
+Click **Import case**. The import can be monitored in real time, it goes through three phases:
+
+1. **Parsing** the archive
+2. **Import** of the entities and of their files
+3. **Remapping** of the relations between the imported entities
+
+When the import is complete, the message *Import successful.* is displayed. Click **Import another Case** to import a new archive, or **Cancel** to leave without importing.
+
+:::caution
+
+Imported entities receive new identifiers on the instance. Cases can be freely moved from one Colander instance to another, but the owner of the imported case is the user who performs the import.
+
+:::
+
+{/* TODO(verify): confirm the ownership/identifier behavior of imported cases (serializer.save(owner=request.user) in archives_create_entity_view; ids remapped in the "Remapping" phase), and the exact wording of the case list button. */}

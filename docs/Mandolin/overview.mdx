@@ -1,0 +1,54 @@
+---
+sidebar_position: 1
+---
+
+
+# Overview
+
+<div style={{textAlign: 'center', margin: '1.5rem 0'}}>
+  <img src="/img/logos/mandolin.png" alt="Mandolin logo" style={{width: '120px', height: '120px'}} />
+</div>
+
+**Mandolin** is a micro-service to analyze and convert files. It is the engine behind the offline analysis of [Colander](/docs/Colander/overview) artifacts: files are processed locally, without relying on 3rd-party services, which preserves the confidentiality of your cases.
+
+Like [Threatr](/docs/Threatr/overview), Mandolin can be deployed alongside Colander or separately. This keeps Colander lightweight, isolates the processing of untrusted files from the rest of the platform, and lets other projects use Mandolin without Colander.
+
+## Supported operations
+
+| Operation | Powered by | Description |
+|-----------|------------|-------------|
+| **Content and metadata extraction** | [Apache Tika](https://tika.apache.org) | Extracts the text and the metadata (title, type, language, creation date, etc.) of over a thousand file types. |
+| **Antivirus scan** | [ClamAV](https://www.clamav.net) | Checks whether a file is infected and gives the name of the detected threat. |
+| **Pattern matching** | [Yara](https://yara.readthedocs.io) | Applies the Yara rules you provide to a file and returns the matching rules and strings. |
+| **Thumbnail generation** | | Generates the thumbnail of an image. |
+
+:::info
+
+The files are analyzed by Mandolin, they are never sent to an external service. The maximum size of a file is 250 MB by default.
+
+:::
+
+## How it works
+
+Mandolin exposes its operations through a [REST API](/docs/Mandolin/rest-api) documented with the OpenAPI standard. Each operation receives a file and returns a JSON document describing the outcome: whether the analysis succeeded, which processor produced the result, and the result itself.
+
+Mandolin relies on two companion services to do the heavy lifting: an Apache Tika server and a ClamAV server. Yara rules are evaluated by Mandolin itself.
+
+## Use with Colander
+
+When Mandolin is enabled, Colander automatically submits every uploaded artifact to it. See [Artifact analysis](/docs/Colander/artifact-management#artifact-analysis) to learn what is displayed and how to disable it.
+
+## Python client
+
+A Python client generated from the OpenAPI specification is available on [PyPI](https://pypi.org/project/mandolin-python-client/):
+
+```bash
+pip install mandolin-python-client
+```
+
+The OpenAPI specification also allows generating clients in JavaScript, Go and many other languages.
+
+## What's next?
+
+* [Deployment](/docs/Mandolin/deployment): deploy Mandolin on your own.
+* [REST API](/docs/Mandolin/rest-api): analyze files from your own tools.

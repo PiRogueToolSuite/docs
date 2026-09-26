@@ -1,0 +1,102 @@
+---
+sidebar_position: 4
+---
+
+
+# Enrichment
+
+## Purpose
+
+Enrichment augments raw network events with additional derived information that is useful for display, filtering, correlation and forwarding. Enrichers run inside the enrichment worker and add fields like direction, hostnames, GeoIP information, community IDs and a flow risk score.
+
+## How it works
+
+When the Mongoose enrichment worker starts, it subscribes to the processing queue topics for incoming network events:
+
+```python
+ProcessingTopic.NETWORK_DPI = "network-dpi"
+ProcessingTopic.NETWORK_ALERT = "network-alert"
+ProcessingTopic.NETWORK_FLOW = "network-flow"
+```
+
+For each event the worker applies a set of automatic enrichers and, if configured, the GeoIP enricher. After enrichment, the worker republishes the event on the corresponding "enriched" topic:
+
+```python
+ProcessingTopic.ENRICHED_NETWORK_DPI = "enriched-network-dpi"
+ProcessingTopic.ENRICHED_NETWORK_ALERT = "enriched-network-alert"
+ProcessingTopic.ENRICHED_NETWORK_FLOW = "enriched-network-flow"
+```
+
+## Available enrichers
+
+Each enricher receives a network event and mutates the object in place by setting attributes or adding entries to the `event.enrichment` dictionary.
+
+| Enricher | Purpose | When it runs |
+|----------|---------|--------------|
+| [Flow direction](#flow-direction) | Classifies a flow as `inbound`, `outbound` or `local`. | Always |
+| [Community ID](#community-id) | Computes the Community ID of a flow. | Always |
+| [Hostname](#hostname) | Reverse DNS lookup of the source and destination addresses. | Always |
+| [Flow risk](#flow-risk) | Attaches a numeric risk value (0: normal, 1: suspicious, 2: critical). | Always |
+| [GeoIP](#geoip) | Attaches location and network ownership metadata. | Only when enabled |
+
+### Flow direction
+
+Classifies whether a flow is `inbound`, `outbound` or `local`, relative to the monitored network (`DirectionEnrichment`).
+
+### Community ID
+
+Computes the Community ID of a flow to help with cross-system correlation (`CommunityIDEnrichment`). See [Data correlation](/docs/Mongoose/correlation).
+
+### Hostname
+
+Attempts reverse DNS lookups of the source and destination addresses to provide human-friendly names (`HostnameEnrichment`). It uses `socket.gethostbyaddr` with a short timeout.
+
+### Flow risk
+
+Attaches a numeric risk value to a flow based on the severity of the Suricata alerts raised for it (`FlowRiskEnrichment`). See [Understanding the risk score](/docs/Mongoose/correlation#understanding-the-risk-score).
+
+### GeoIP
+
+Looks up the public endpoint of the flow in a GeoIP database and attaches the returned location metadata (`GeoIP`). It only runs when enabled, see the [GeoIP configuration](/docs/Mongoose/configuration#geoip).
+
+## Example
+
+Minimal input (synthetic) event:
+
+```json
+{
+  "src_ip": "8.8.8.8",
+  "dst_ip": "10.0.0.1",
+  "src_port": 443,
+  "dst_port": 52345,
+  "protocol": "tcp",
+  "enrichment": {}
+}
+```
+
+Possible enriched result after running all enrichers:
+
+```json
+{
+  "src_ip": "8.8.8.8",
+  "dst_ip": "10.0.0.1",
+  "src_port": 443,
+  "dst_port": 52345,
+  "protocol": "tcp",
+  "community_id": "1:abcd...",
+  "risk": 2,
+  "enrichment": {
+    "direction": "inbound",
+    "src_hostname": "dns.google",
+    "dst_hostname": "",
+    "geoip": {
+      "country": "US",
+      "city": "Mountain View",
+      "ip": "8.8.8.8"
+    },
+    "object_type": "network-flow"
+  }
+}
+```
+
+The fields added by the enrichers are described in [Data models](/docs/Mongoose/data-models#enrichment-fields).

@@ -1,0 +1,42 @@
+**You need:** Docker with Docker Compose, `git`, Node.js and `openssl`. Allow about 10 GB of disk space and 8 GB of RAM, and 5 to 10 minutes for the first start.
+
+Copy and paste the following block in a terminal. It downloads Colander, builds it, starts the full stack (database, storage, search engine, workers, [Mandolin](/docs/Mandolin/overview), CyberChef, etc.) and creates an administrator.
+
+```bash title="Run Colander locally"
+git clone --depth 1 https://github.com/PiRogueToolSuite/colander.git
+cd colander
+
+# Build the frontend and the containers
+npm ci && npm run dist
+docker compose -f local.yml build
+
+# Start Colander and wait until it answers
+docker compose -f local.yml up -d
+until curl -s -o /dev/null http://127.0.0.1:8080/; do sleep 3; done
+
+# Load the default data and create the administrator
+docker compose -f local.yml run --rm django python manage.py insert_default_data
+ADMIN_PASSWORD=$(openssl rand -hex 12)
+docker compose -f local.yml run --rm -e DJANGO_SUPERUSER_PASSWORD="$ADMIN_PASSWORD" \
+  django python manage.py createsuperuser --noinput --username admin --email admin@localhost
+
+echo "Colander: http://127.0.0.1:8080 (user: admin, password: $ADMIN_PASSWORD)"
+```
+
+###### Check that it works
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080) and log in with the user and the password displayed at the end of the block. You land on the dashboard, from where you can create your first case, see [Case management](/docs/Colander/case-management).
+
+:::info
+
+Registration is disabled. To create the accounts of your colleagues, use the administration panel at [http://127.0.0.1:8080/admin/](http://127.0.0.1:8080/admin/), see [Accounts](/docs/Colander/accounts). Emails, such as the account verification, are printed in the logs: `docker compose -f local.yml logs -f django`.
+
+:::
+
+###### What's next
+To stop Colander, run `docker compose -f local.yml stop`. To remove it with all its data, run `docker compose -f local.yml down -v`.
+
+:::caution[This is not a production deployment]
+
+This is the development stack of Colander: it is meant to try Colander on your own computer, it listens on plain HTTP and it does not include the reverse proxy, the TLS certificate and the automatic updates. To host Colander for your team on a server with a domain name, follow the [deployment procedure](/docs/Colander/deployment).
+
+:::

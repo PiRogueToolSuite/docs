@@ -1,0 +1,9 @@
+{
+  "label": "Advanced",
+  "position": 22,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Deeper PiRogue topics: hardware build, operating system internals, Suricata rules, data export and system integration."
+  }
+}

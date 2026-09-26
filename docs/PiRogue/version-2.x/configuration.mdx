@@ -96,6 +96,12 @@ pirogue-admin-client system --help
 # ... and so on
 ```
 
+:::tip[Prefer a graphical interface?]
+
+Most of these features are also available in the [admin web interface](/docs/PiRogue/version-2.x/admin-web), served at `/admin` next to the dashboard.
+
+:::
+
 
 ## Operating modes
 Depending on system capabilities, the PiRogue is configured automatically in the adequate mode.
@@ -353,12 +359,12 @@ First of all, make sure to open your PiRogue to the Internet, see the instructio
 
 To connect to the PiRogue remotely, the administration client uses an authentication token. To get this token, use the command:
 ```shell title="Get the administration authentication token"
-pirogue-admin-client external-network get-administration-token
+pirogue-admin-client access get-administration-token
 ```
 
 The following command will reset the authentication token:
 ```shell title="Reset the administration authentication token"
-pirogue-admin-client external-network reset-administration-token
+pirogue-admin-client access reset-administration-token
 ```
 
 On the administrator's computer, run the following command to configure the administration client:

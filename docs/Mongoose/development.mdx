@@ -1,0 +1,43 @@
+---
+sidebar_position: 8
+---
+
+
+# Development
+
+Mongoose uses [uv](https://docs.astral.sh/uv/) and [Hatch](https://github.com/pypa/hatch) as build tools.
+
+###### 1. Set up the development environment
+Once the repository is checked out:
+
+```bash
+uv sync --all-groups
+```
+
+###### 2. Install the pre-commit hooks
+```bash
+uvx pre-commit install
+```
+
+These hooks can be run at any time with tox:
+
+```bash
+tox run -e fix
+```
+
+## Create a new release
+
+Hatchling uses the Debian changelog to define the Python package version and authors:
+
+```bash
+dch -i  # Increment the Debian package version
+git tag -a "v1.x.x" -m "message"  # New tag to publish the Python package on PyPI
+```
+
+## API reference
+
+The Python API reference is generated from the source code and available in the [Mongoose documentation](https://pts-project.org/mongoose/).
+
+## License
+
+Mongoose is licensed under the **GPL-3.0-or-later**. See the [LICENSES directory](https://github.com/PiRogueToolSuite/mongoose/tree/main/LICENSES) for details.

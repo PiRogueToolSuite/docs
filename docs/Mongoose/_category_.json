@@ -1,8 +1,8 @@
 {
   "label": "Mongoose",
-  "position": 5,
+  "position": 7,
   "link": {
     "type": "generated-index",
-    "description": "Mongoose documentation."
+    "description": "Mongoose collects, enriches, stores and forwards Suricata alerts and network flows."
   }
 }

@@ -1,0 +1,75 @@
+---
+sidebar_position: 3.5
+---
+
+
+# Docker Compose (standalone)
+
+Prefer to skip Ansible and drive Docker Compose yourself? The same [`colander-ansible`](https://github.com/PiRogueToolSuite/colander-ansible) repository ships a self-service `docker/` folder: pick only the components you need, start the full stack in one command, or hand it to your own provisioning tool.
+
+This is a lighter alternative to the [Deployment](/docs/Colander/deployment) procedure above: no dedicated server setup, no `colander` system user, no Ansible inventory. You run `docker compose` directly, on any machine that has Docker installed.
+
+:::caution[Still your responsibility]
+
+This mode does not provision a server, set up backups, or manage upgrades for you, unlike the Ansible playbooks. Treat it as a starting point and review the generated configuration before exposing it to the Internet.
+
+:::
+
+## Get the compose files
+```shell title="Clone the repository"
+git clone https://github.com/PiRogueToolSuite/colander-ansible.git
+cd colander-ansible/docker
+```
+
+Copy the default `.env` file and adjust it to your needs (domains, image versions, volume paths, secrets). It is commented and self-explanatory.
+
+## Start only what you need
+Each tool has its own compose file, so you can run it on its own:
+
+```shell title="Colander only"
+docker compose -f compose-colander.yml up -d
+```
+Colander answers on [http://localhost:5000](http://localhost:5000), or `https://colander.local:4443` if you add `colander.local` to your hosts file.
+
+```shell title="Threatr only"
+docker compose -f compose-threatr.yml up -d
+```
+
+```shell title="Mandolin only"
+docker compose -f compose-mandolin.yml up -d
+```
+
+```shell title="CyberChef only"
+docker compose -f compose-cyberchef.yml up -d
+```
+
+Combine any of them with several `-f` flags for an "à la carte" stack:
+```shell title="Colander + Threatr"
+docker compose -f compose-colander.yml -f compose-threatr.yml up -d
+```
+
+## Start the whole stack
+```shell title="Everything, production-style"
+docker compose up -d
+```
+
+If you don't have a domain name yet, or can't obtain a Let's Encrypt certificate, use the development override instead. It also generates a self-signed certificate and exposes the Traefik dashboard:
+```shell title="Everything, with a self-signed certificate"
+docker compose -f compose-dev.yml up -d
+```
+
+Once it is up, you get:
+* [Colander](http://localhost:5000) or `https://colander.local:4443`
+* [Threatr](http://localhost:5001) or `https://threatr.local:4443`
+* [CyberChef](http://localhost:5002) or `https://cyberchef.local:4443`
+* Traefik dashboard (with `compose-dev.yml` only): `http://localhost:8080`
+
+Add the `*.local` hostnames above to your `/etc/hosts` file to use them.
+
+## Connect Colander to Threatr
+Follow the same steps as the Ansible deployment, see the "Connecting Colander to Threatr" section of the [Deployment](/docs/Colander/deployment) page.
+
+## Stop everything
+```shell title="Stop the stack you started"
+docker compose stop          # or add -f <file> to match what you started with
+```

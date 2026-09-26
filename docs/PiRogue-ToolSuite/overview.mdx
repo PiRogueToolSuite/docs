@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Overview
@@ -8,9 +8,30 @@ sidebar_position: 2
   <img src="/img/pts-logo-circle.svg" alt="PiRogue Tool Suite logo" style={{width: '120px', height: '120px'}} />
 </div>
 
-<div style={{textAlign: 'center', margin: '2rem 0'}}>
-  <img src="/img/drawing.svg" alt="PiRogue Tool Suite ecosystem architecture" style={{maxWidth: '700px', width: '100%'}} />
-</div>
+The tools work together: the PiRogue observes a device, Colander turns the findings into an investigation, and Threatr and Mandolin enrich the evidence.
+
+```mermaid
+flowchart TB
+    DEV["Device to analyze"]
+
+    subgraph PROBE ["PiRogue: network probe"]
+        direction LR
+        PR["Traffic interception\nThreat detection\nDeep packet inspection"]
+        MO["Mongoose\nEvent collection and enrichment"]
+        OC["Octopus\nDynamic analysis of Android apps"]
+    end
+
+    COL["Colander\nCase management, evidence,\ndetection rules, collaboration"]
+    THR["Threatr\nThreat intelligence:\nVirusTotal, OTX, Shodan, MISP"]
+    MAN["Mandolin\nOffline file analysis:\nmetadata, OCR, antivirus, Yara"]
+
+    DEV -->|"network traffic"| PR
+    PR --- MO
+    PR --- OC
+    PR -->|"alerts, flows, evidence"| COL
+    COL <-->|"lookups"| THR
+    COL <-->|"files"| MAN
+```
 
 At the core of the PiRogue Tool Suite lies the **PiRogue** hardware device, a Raspberry Pi based network router that captures and analyzes network traffic in real-time. This hardware component serves as the foundation for the suite's extensive software capabilities, which include:
 
@@ -45,8 +66,3 @@ The PiRogue Tool Suite offers several key advantages that make it an attractive 
 The PiRogue can be used without Colander.
 
 :::
-
-
-# Philosophy 
-
-We advocate for the democratization of information security tools and threat intelligence, transforming them from exclusive proprietary assets of a select few companies into widely accessible public goods. By embracing open-source principles and fostering collaborative development, we aim to empower individuals and organizations worldwide with the knowledge and tools that are necessary to safeguard their digital assets. Our approach promotes transparency, fosters innovation, and ensures that the benefits of cybersecurity are not confined to a privileged few but are shared among the broader community. To foster widespread adoption and establish a foundation of trust, this project exclusively uses established open-source tools that are widely recognized and trusted within the cybersecurity industry. Our commitment to open-source solutions promotes transparency, collaboration, and community-driven development, and furthermore ensures that the project benefits from the collective expertise and scrutiny of cybersecurity community. By leveraging industry-standard tools, the project aims to instill confidence in its capabilities and encourage widespread adoption among security-conscious organizations.

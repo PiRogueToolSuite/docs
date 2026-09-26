@@ -1,0 +1,66 @@
+---
+sidebar_position: 14.5
+---
+
+
+# PiRogue fleet
+
+Colander can manage your [PiRogues](/docs/PiRogue/overview), whether they are physical devices or virtual instances. Once a PiRogue is **enrolled**, you can monitor its health, configure it remotely from Colander, and use it to [monitor devices](/docs/Colander/advanced/device-monitoring) in your cases. All the PiRogues you can access are listed in the **PiRogue fleet** entry of the main menu.
+
+## Requirements
+
+* A PiRogue running `pirogue-base` version `>=2.0.0` and reachable from your Colander server. See [Make the PiRogue accessible from the Internet](/docs/PiRogue/version-2.x/configuration#make-the-pirogue-accessible-from-the-internet) if your PiRogue is not on the same network as Colander.
+* An [access token](/docs/PiRogue/version-2.x/admin-web#user-accesses) of the PiRogue. Prefer a user access token with the required permissions over the administration token, to apply the principle of least privilege.
+
+## Enroll a PiRogue
+
+In the **PiRogue fleet** page, fill in the form **Enrolled PiRogues**:
+
+| Field | Description |
+|-------|-------------|
+| **Friendly name** | Name displayed in Colander. When empty, the PiRogue is displayed with its host. |
+| **Host** | Fully qualified domain name or IP address of the PiRogue. |
+| **Port** | Port of the administration service of the PiRogue (`50051` by default). |
+| **Token** | Access token generated on your PiRogue, see [User accesses](/docs/PiRogue/version-2.x/admin-web#user-accesses). |
+| **Has public visibility** | Check it when the PiRogue is accessible on the Internet with a valid certificate. |
+| **Certificate** | Self-signed certificate of the PiRogue. Required when the PiRogue is not accessible on the Internet. Get it with `pirogue-admin-client access get-administration-certificate`. |
+
+Once enrolled, Colander periodically checks the status of the PiRogue, see [below](#monitor-the-status-of-your-fleet).
+
+:::caution
+
+The token is a secret giving access to your PiRogue. Only the person who enrolled a PiRogue can delete it or trigger a status check.
+
+:::
+
+## Monitor the status of your fleet
+
+Each PiRogue of the list displays:
+
+* its **link status**: `UP` when the PiRogue answers, `DOWN` when it cannot be reached, and `UNKNOWN` (*Scheduled*) while no status has been retrieved yet
+* its last known **operating mode** (VPN, access point or appliance)
+
+Colander automatically contacts every enrolled PiRogue on an hourly basis and keeps a history of the answers for three days. Click **Check status now** in the details of a PiRogue to refresh its status immediately.
+
+## Configure a PiRogue remotely
+
+Click a PiRogue to open its details. Below its connection information, Colander embeds the same interface as the [admin web interface](/docs/PiRogue/version-2.x/admin-web) of the PiRogue. You can therefore inspect its status, configuration and installed packages, and change its settings without connecting to it. The sections displayed depend on the permissions of the token used to enroll the PiRogue.
+
+The *Access* section is specific to Colander: on top of the token and the permissions of each user access, it lets you choose which **Colander teams** can use it.
+
+## Share a PiRogue with your teams
+
+Sharing a PiRogue avoids giving your administration token to your colleagues. In the *Access* section of the PiRogue:
+
+###### 1. Create a user access
+Click **New**. The user access has no permission by default.
+
+###### 2. Grant the permissions
+Select the permissions the team needs (for example the permissions to manage VPN peers and to monitor devices) and click **Apply changes**.
+
+###### 3. Select the teams
+In the **Teams** panel, choose the [Colander teams](/docs/Colander/collaboration) allowed to use this access.
+
+The members of these teams see the PiRogue in their fleet and can select it when they [monitor a device](/docs/Colander/advanced/device-monitoring), with the permissions you granted and nothing more. Revoke the access at any time by removing the team or deleting the user access.
+
+{/* TODO(verify): permission names required by device monitoring (Network:AddVPNPeer, device-monitoring methods), the default port and exact button labels on a released Colander (v1.4.0). */}

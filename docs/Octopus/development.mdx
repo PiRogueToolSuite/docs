@@ -1,0 +1,56 @@
+---
+sidebar_position: 6
+---
+
+
+# Development
+
+It is recommended to use [uv](https://github.com/astral-sh/uv) for managing the Python environment.
+
+###### 1. Clone the repository
+```bash
+git clone https://github.com/PiRogueToolSuite/octopus.git
+cd octopus
+```
+
+###### 2. Install the Python dependencies
+```bash
+uv sync
+```
+
+###### 3. Install the Node.js dependencies and build the Frida agents
+```bash
+npm install
+npm run build
+```
+
+## Scripts
+
+The project uses `tox` for automation:
+
+* `tox -e fix`: format code using Ruff and run pre-commit hooks.
+* `tox -e docs`: generate the HTML documentation.
+* `tox -e servedocs`: serve the documentation with live reload.
+
+Frida agent development:
+
+* `npm run build`: compile the TypeScript agent to JavaScript.
+* `npm run watch`: continuously compile the agent on changes.
+* `npm run lint`: run ESLint on the TypeScript source.
+
+## Project structure
+
+* `octopus/`: core Python package.
+  * `capture/`: modules for device, network, screen and Frida management.
+  * `commands/`: CLI command definitions.
+  * `frida/`: Frida instrumentation logic.
+* `frida-scripts-src/`: TypeScript source for the Frida agents.
+* `debian/`: Debian packaging configuration.
+
+## API reference
+
+The Python API reference is generated from the source code and available in the [Octopus documentation](https://pts-project.org/octopus/).
+
+## License
+
+Octopus is licensed under the **GPL-3.0-or-later**. See the [LICENSES directory](https://github.com/PiRogueToolSuite/octopus/tree/main/LICENSES) for details.

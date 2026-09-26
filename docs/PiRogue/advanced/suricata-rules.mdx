@@ -1,0 +1,84 @@
+---
+sidebar_position: 4
+---
+
+# Suricata rules
+
+This page explains how to read a [Suricata](https://suricata.io) rule, and how to find the rule behind an alert you see in the [dashboard](/docs/PiRogue/dashboard). For a first overview of how the PiRogue detects threats, see [Network traffic analysis](/docs/PiRogue/traffic-analysis).
+
+## Where the rules live
+
+| What | Where |
+|------|-------|
+| The rules used by your PiRogue | `/var/lib/suricata/rules/suricata.rules` |
+| Suricata configuration | `/usr/share/pirogue/suricata/suricata.yaml` |
+| Online copy of the rules | [suricata-rules on GitHub](https://github.com/PiRogueToolSuite/suricata-rules/blob/main/suricata.rules) |
+
+The PiRogue comes with rules from [ProofPoint Emerging Threats Open](https://community.emergingthreats.net/t/frequently-asked-questions/56) and [Echap](https://github.com/AssoEchap/stalkerware-indicators), and refreshes them every day.
+
+:::danger[Resource consumption]
+
+The number of rules and the amount of monitored traffic directly drive RAM usage. On a device with limited memory, a large ruleset can slow the whole PiRogue down. Suricata is automatically disabled on devices with less than 2.5 GB of RAM.
+
+:::
+
+## Anatomy of a rule
+
+A rule tells Suricata what to look for in the traffic and what to do when it finds it. Every rule has three parts: an **action**, a **header** and **options**.
+
+```txt
+alert dns $HOME_NET any -> any any (msg:"PTS LOCATION TRACKER Device Atlas (maw[.]re)"; metadata: type tracker; dns.query; content:"maw.re"; depth:6; nocase; endswith; fast_pattern; reference:url,esther.codes; classtype:targeted-activity; sid:1001016; rev:1;)
+```
+
+| Part | In the example |
+|------|----------------|
+| **Action** | `alert` |
+| **Header** | `dns $HOME_NET any -> any any` |
+| **Options** | everything between the parentheses: `(msg:"…"; content:"maw.re"; … sid:1001016;)` |
+
+### Action
+What Suricata does when the rule matches. The PiRogue only observes traffic (IDS mode), so in practice you will see `alert`.
+
+| Action | Effect |
+|--------|--------|
+| `alert` | Log an alert |
+| `pass` | Stop inspecting the packet |
+| `drop` | Drop the packet and log an alert (IPS mode only) |
+| `reject` | Reject the packet (IPS mode only) |
+
+### Header
+Which traffic the rule applies to: `protocol source_ip source_port direction destination_ip destination_port`.
+
+* **Protocol**: `tcp`, `udp`, `icmp`, `dns`, `http`, `tls`… or `ip` for everything. See the [list of protocols](https://docs.suricata.io/en/latest/rules/intro.html#protocol).
+* **Addresses**: IPv4 or IPv6, with operators such as `!` (not), `[a,b]` (group) and `a/b` (range), or variables like `$HOME_NET` and `$EXTERNAL_NET`. See [rule variables](https://docs.suricata.io/en/latest/configuration/suricata-yaml.html#suricata-yaml-rule-vars).
+* **Ports**: source and destination ports, or `any`.
+* **Direction**: `->` for one direction, `<>` for both.
+
+### Options
+Extra criteria in parentheses, separated by semicolons. The most useful ones:
+
+* `msg`: the message displayed in the alert
+* `sid`: the unique ID of the rule
+* `classtype`: the category of the threat
+* `reference`: where to learn more (a URL, a CVE…)
+* `content`: the pattern to look for in the payload
+
+See the [meta keywords](https://docs.suricata.io/en/latest/rules/meta.html) for the full list.
+
+### What the example does
+The rule above reads: *alert on any DNS query, from the local network to anywhere, whose domain is `maw.re`*, a domain used by a known location tracker. When it matches, Suricata logs an alert with the message, the category and a reference.
+
+## Find the rule behind an alert
+1. Note the **signature** (name) of the alert in the dashboard, or the domain name or IP address involved.
+2. Search the rules file on your PiRogue:
+   ```bash
+   grep -i "maw.re" /var/lib/suricata/rules/suricata.rules
+   ```
+3. Read the `header` and `options` of the matching rule to understand exactly what triggered it. If the alert is a false positive, this tells you why.
+
+## Add your own rules
+Follow the recipe [Add your own Suricata rules to PiRogue](/docs/Recipes/add-suricata-ruleset).
+
+## Going further
+* [Suricata documentation](https://docs.suricata.io)
+* [Suricata rules documentation](https://docs.suricata.io/en/latest/rules/intro.html)

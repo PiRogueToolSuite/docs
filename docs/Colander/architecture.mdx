@@ -16,6 +16,8 @@ Colander relies on several services:
 * `minio`: Minio S3-compatible object storage for store artifacts
 * `redis`: Redis server for communication between the frontend and the workers for both Colander and Threatr
 * `watchtower`: Watchtower service keeping the stack up-to-date
+* `mandolin`: [Mandolin](/docs/Mandolin/overview) micro-service analyzing the uploaded artifacts and generating their thumbnails
+* `tika`: Apache Tika server used by Mandolin to extract the content and the metadata of the artifacts
 
 Threatr also relies on:
 * `threatr-postgres`: Postgres database

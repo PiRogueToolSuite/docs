@@ -1,0 +1,45 @@
+**You need:**
+* a computer with Python 3.11 or newer and [`pipx`](https://pipx.pypa.io)
+* the Android platform tools (`adb`), for instance `sudo apt install adb` on Debian and Ubuntu
+* a **rooted** Android device connected by USB with *USB debugging* enabled, or a [rooted emulator](/docs/Octopus/android-emulator)
+
+```bash title="Install Octopus"
+pipx install pirogue-octopus
+```
+
+###### Check that it works
+Make sure Octopus sees your device:
+
+```bash
+octopus device list
+```
+
+Octopus lists the devices it found. If it says `0 device(s) found`, check the USB cable, unlock the phone and accept the debugging authorization it asks for.
+
+:::note
+
+Depending on your Python version, you may see `SyntaxWarning` messages coming from a dependency. They are harmless.
+
+:::
+
+###### Analyze an application
+Start the instrumentation. It records the screen, the network traffic, the sockets, the cryptographic operations and extracts the TLS keys:
+
+```bash
+octopus instrument usb --output-path ./my_analysis
+```
+
+When Octopus displays *Waiting for data*, **launch the application** to analyze on the phone and use it. Octopus instruments the processes when they start, so an application already running has to be restarted. Press `CTRL + C` to stop.
+
+Add `--duration 60` to stop automatically after 60 seconds. All the results are saved in the output directory:
+
+```bash
+ls ./my_analysis
+# ad_ids.txt  device.json  dynamic_hook.json  experiment.json  screen.mp4
+# socket_trace.json  sslkeylog.txt  traffic.pcap
+```
+
+###### What's next
+* Decrypt the traffic with the extracted keys, see [TLS decryption](/docs/Octopus/tls-decryption).
+* Learn what each file contains, see [Outputs](/docs/Octopus/outputs).
+* Use a device connected to another machine, see [Usage](/docs/Octopus/usage#remote-adb-server).

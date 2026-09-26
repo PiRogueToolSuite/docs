@@ -1,0 +1,76 @@
+---
+sidebar_position: 2
+---
+
+
+# Usage
+
+The main entry point is the `octopus` CLI.
+
+```bash
+# List available Android devices (local only)
+octopus device list
+
+# Start instrumentation over USB
+octopus instrument usb
+
+# Start instrumentation over network
+octopus instrument tcp --device-host <DEVICE_IP>
+```
+
+Octopus instruments processes when they spawn. To instrument an application, start `octopus` then launch the application to be analyzed when Octopus is *Waiting for data*. Press `CTRL + C` to stop.
+
+## Options
+
+Common options for `instrument`:
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output-path` | Directory to save capture results (default: `./output`). |
+| `-d, --device-id` | Serial number of the device connected to ADB (USB mode only). |
+| `-ns, --no-screen-record` | Disable screen recording. |
+| `-ni, --no-instrumentation` | Disable Frida instrumentation. |
+| `-nn, --no-network-capture` | Disable network capture. |
+| `--duration` | Capture duration in seconds to wait before it's automatically stopped (default: unlimited). |
+| `-w, --overwrite` | Overwrite the output files. |
+| `--log-level` | Set the logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
+
+Example with more options:
+
+```bash
+octopus --log-level DEBUG instrument usb --output-path ./my_analysis --duration 60 --overwrite
+```
+
+All the results are saved in the output directory, see [Outputs](/docs/Octopus/outputs) for a description of each file.
+
+## Remote ADB server
+
+The following options let you specify the ADB server to use:
+
+| Option | Description |
+|--------|-------------|
+| `-ah, --adb-host` | ADB server IP address (default: `127.0.0.1`). |
+| `-ap, --adb-port` | ADB server port (default: `5037`). |
+
+```bash
+octopus device list --adb-host 127.0.0.1 --adb-port 5037
+```
+
+## Remote Android device
+
+The following options let you specify the device to use:
+
+| Option | Description |
+|--------|-------------|
+| `-dh, --device-host` | Device IP address. |
+| `-dp, --device-port` | Device port (default: `5555`). |
+
+:::info
+
+**ADB over network** must be enabled on the device.
+
+:::
+
+```bash
+octopus instrument tcp --device-host <DEVICE_IP>
+```

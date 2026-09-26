@@ -1,0 +1,123 @@
+---
+sidebar_position: 3
+---
+
+
+# Suricata integration
+
+[Suricata](https://suricata.io) is an open-source network threat detection engine. It inspects live traffic against a library of detection rules and emits structured events in its **EVE JSON** format.
+
+Mongoose consumes two of those event types:
+
+* **alert**: raised each time a rule matches. Mongoose stores these as [Network Alert](/docs/Mongoose/data-models#network-alert) records and uses the alert's severity to compute the [risk score](/docs/Mongoose/correlation#understanding-the-risk-score) of the matching flow.
+* **netflow**: a per-flow summary emitted when a connection closes. Mongoose stores these as `NetworkFlow` records.
+
+Communication between Suricata and Mongoose happens over a **Unix datagram socket**. Suricata writes EVE JSON lines to the socket and Mongoose binds to that socket and reads them in real time.
+
+## How it works
+
+Suricata writes one JSON object per line to the socket as soon as an event occurs. The `SuricataEveCollector` reads each line, parses it and publishes the result onto the internal processing queue for enrichment and forwarding.
+
+:::info
+
+Mongoose **binds** the socket file: it creates and owns the file at `socket_path`. Suricata is configured to write to that path. The socket type is `AF_UNIX SOCK_DGRAM` (Unix datagram), so no TCP/IP stack is involved and no network port is opened.
+
+:::
+
+## Configuring Suricata
+
+The key section in `suricata.yaml` is the `eve-log` output. Mongoose requires the following settings:
+
+```yaml
+outputs:
+  - eve-log:
+    enabled: yes
+    filetype: unix_dgram            # must be unix_dgram
+    filename: /run/suricata.socket  # must match socket_path in Mongoose
+    community-id: true              # required for flow correlation
+    community-id-seed: 0            # keep at 0 to match Mongoose's default
+    types:
+      - alert:
+        metadata:
+          app-layer: true
+          flow: true
+          rule:
+            metadata: true
+            raw: true               # enables the full rule text in alerts
+      - netflow                     # optional, only needed when collect_netflow: true
+```
+
+| Setting | Why it matters |
+|---------|----------------|
+| `filetype: unix_dgram` | Tells Suricata to write to a Unix datagram socket instead of a regular log file. This is the only transport Mongoose supports. |
+| `filename` | Path of the socket file. Must be identical to `socket_path` in the Mongoose collector configuration (default: `/run/suricata.socket`). |
+| `community-id: true` | Instructs Suricata to compute and include the Community ID in every event. Without it, [flow correlation](/docs/Mongoose/correlation#correlating-events-with-the-community-id) will not work. |
+| `community-id-seed: 0` | The seed used when computing the Community ID hash. Must be `0` to match the value used by Mongoose's own Community ID enricher so that the IDs produced by both tools are identical. |
+| `alert` under `types` | Enables the alert event stream. Required when `collect_alerts: true` in Mongoose. |
+| `rule.raw: true` | Includes the full Suricata rule text in the alert payload. This populates the `rule` field of the [Network Alert](/docs/Mongoose/data-models#network-alert). |
+| `netflow` under `types` | Enables the netflow event stream. Only needed when `collect_netflow: true` in Mongoose. |
+
+### Home network
+
+Suricata uses the `HOME_NET` variable to classify traffic as inbound or outbound. It must be set to the IP range of the **isolated network** that Mongoose monitors (the same network as the capture interface):
+
+```yaml
+vars:
+  address-groups:
+    HOME_NET: "192.168.1.0/24"   # replace with your network range
+    EXTERNAL_NET: "!$HOME_NET"
+```
+
+Mongoose's [direction enricher](/docs/Mongoose/enrichment#flow-direction) uses the same concept: it marks a flow as `inbound`, `outbound` or `local` based on which side of the connection falls inside the monitored network. Keeping both values consistent avoids mismatches in the `enrichment.direction` field.
+
+## Configuring Mongoose
+
+On the Mongoose side, the Suricata collector is configured under `collector.suricata`:
+
+```yaml
+collector:
+  suricata:
+    socket_path: /run/suricata.socket   # must match Suricata's filename
+    collect_alerts: true
+    collect_netflow: false              # set to true to also ingest netflow
+    enable: true
+```
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `socket_path` | `/run/suricata.socket` | Filesystem path where Mongoose creates the Unix datagram socket. Suricata's EVE `filename` must point to the same path. |
+| `collect_alerts` | `true` | When enabled, Mongoose ingests Suricata `alert` events and stores them as [Network Alert](/docs/Mongoose/data-models#network-alert) records. |
+| `collect_netflow` | `false` | When enabled, Mongoose ingests Suricata `netflow` events and stores them as `NetworkFlow` records. Suricata must also have `netflow` listed under `eve-log.types`. |
+| `enable` | `true` | Master switch for the whole Suricata collector. |
+
+## Startup order
+
+Because Mongoose **creates** the socket file, it must be started before Suricata attempts to open the socket for writing. The recommended order is:
+
+1. Start Mongoose (or the `pirogue-mongoose` service).
+2. Start (or restart) Suricata so it opens the socket that Mongoose has already created.
+
+If Suricata starts first and cannot find the socket, it logs a warning and discards events until the socket appears. Mongoose tolerates a brief gap: events emitted before the socket is bound are lost, but the collector continues processing all subsequent events normally.
+
+When using `systemd`, the service unit already declares the correct dependency order. If you manage both services manually, the same rule applies: Mongoose first, then Suricata.
+
+## Detection rules
+
+Mongoose does not manage Suricata rules directly. Rules are configured in `suricata.yaml` under `default-rule-path` and `rule-files`:
+
+```yaml
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+```
+
+The `signature`, `category` and `severity` fields that appear in the [Network Alert](/docs/Mongoose/data-models#network-alert) records come directly from these rules. To customize which threats Suricata reports, update the rule files and reload Suricata (e.g. `suricatasc -c reload-rules`).
+
+:::tip[See also]
+
+* [Network Alert](/docs/Mongoose/data-models#network-alert): structure of the alert records produced from Suricata events.
+* [Risk score](/docs/Mongoose/correlation#understanding-the-risk-score): how alert severity becomes the `risk` field on Network DPI records.
+* [Community ID](/docs/Mongoose/correlation#correlating-events-with-the-community-id): how the Community ID links alerts to their corresponding DPI flows.
+* [Collectors configuration](/docs/Mongoose/configuration#collectors): full collector configuration reference.
+
+:::

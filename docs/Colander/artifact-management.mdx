@@ -26,7 +26,7 @@ pirogue-colander collect-artifact -c "[case ID]" [path of the file to be uploade
 ```
 
 ### REAT API
-Refer to the [RESP API documentation](/docs/Colander/rest-api).
+Refer to the [RESP API documentation](/docs/Colander/advanced/rest-api).
 
 ## Artifact processing
 Once uploaded, Colander will compute the mimetype, MD5, SHA1 and SHA256 of the artifact. Then, a detached digital signature will be computed using the private key of the case the artifact belongs to. Later, when sharing an artifact, its integrity can be checked by the recipient using `openssl`. To do so, the recipient needs:
@@ -36,3 +36,22 @@ Once uploaded, Colander will compute the mimetype, MD5, SHA1 and SHA256 of the a
 * the artifact itself
 
 <CaptionedImage src="/img/colander/artifact_management/integrity.png" alt="Check the integrity of an artifact" caption="Check the integrity of an artifact" align="center"/>
+
+
+## Artifact analysis
+Once hashed and signed, every uploaded artifact is automatically submitted to [Mandolin](/docs/Mandolin/overview), the micro-service in charge of analyzing files. The analysis is **offline**: files are processed by your own Colander deployment and are never sent to a third-party service, which preserves the confidentiality of your case.
+
+The analysis runs in the background, so results can take a few moments to appear after the upload. They are shown in the details of the artifact:
+
+* **Content and metadata extraction**: the text contained in the file is extracted with [Apache Tika](https://tika.apache.org), for over a thousand file types (documents, spreadsheets, PDFs, emails, etc.), and displayed in the artifact details. When the file embeds GPS coordinates (for instance a photo), the location is displayed on a map.
+* **Thumbnails**: a thumbnail is generated for pictures.
+
+:::note[Antivirus scan]
+
+[Mandolin](/docs/Mandolin/overview) can also scan files with ClamAV and apply Yara rules. The integration of the antivirus scan in Colander, which flags infected artifacts and displays the name of the detected threat, is under development at the time of writing.
+
+:::
+
+{/* TODO(verify): the ClamAV integration lives on Colander's `next` branch and is not part of release v1.4.0; the Colander Ansible stack does not deploy ClamAV yet. Confirm the release that ships it, then remove the note above and document the "Malicious"/"Clean" verdict and the `is_malicious` attribute. */}
+
+Mandolin is deployed by default with Colander. To disable the analysis of artifacts, see [Per host customization](/docs/Colander/deployment#inventory-file) (`use_mandolin`).

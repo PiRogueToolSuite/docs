@@ -24,6 +24,66 @@ const config = {
   },
   themes: ['@docusaurus/theme-mermaid'],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      /** @type {import('@docusaurus/plugin-content-docs').Options} */
+      ({
+        id: 'guides',
+        path: 'guides',
+        routeBasePath: 'guides',
+        sidebarPath: './sidebarsGuides.js',
+        exclude: ['**/_*.{js,jsx,ts,tsx,md,mdx}', '**/_*/**'],
+        editUrl:
+          'https://github.com/PiRogueToolSuite/piroguetoolsuite.github.io/tree/v2/',
+      }),
+    ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      /** @type {import('@docusaurus/plugin-client-redirects').Options} */
+      ({
+        // Pages moved into an "advanced" sub-category keep working at their old URL
+        redirects: [
+          ...[
+            'case-import-export',
+            'artifact-acquisition',
+            'knowledge-graph',
+            'import-knowledge',
+            'share-knowledge',
+            'pirogue-fleet',
+            'device-monitoring',
+            'traffic-analysis',
+            'traffic-decryption',
+            'chain-of-custody',
+            'external-sources',
+            'rest-api',
+          ].map((slug) => ({
+            from: `/docs/Colander/${slug}`,
+            to: `/docs/Colander/advanced/${slug}`,
+          })),
+          ...[
+            'hardware',
+            'operating-system',
+            'export-data',
+            'pre-installed-tools',
+            'telemetry',
+          ].map((slug) => ({
+            from: `/docs/PiRogue/${slug}`,
+            to: `/docs/PiRogue/advanced/${slug}`,
+          })),
+          {
+            from: '/docs/PiRogue-ToolSuite/tools-overview',
+            to: '/docs/PiRogue-ToolSuite/overview',
+          },
+          {
+            from: '/docs/PiRogue/version-2.x/system-integration',
+            to: '/docs/PiRogue/advanced/system-integration',
+          },
+        ],
+      }),
+    ],
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'fr', 'es', 'ar', 'ru'],
@@ -36,7 +96,9 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          exclude: ['**/partials/**'],
+          // Keep Docusaurus's default underscore-file exclusion (setting `exclude`
+          // explicitly overrides it otherwise), plus our own partials folder.
+          exclude: ['**/_*.{js,jsx,ts,tsx,md,mdx}', '**/_*/**', '**/partials/**'],
           editUrl:
             'https://github.com/PiRogueToolSuite/piroguetoolsuite.github.io/tree/v2/',
         },
@@ -79,6 +141,13 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
+          {
+            type: 'docSidebar',
+            docsPluginId: 'guides',
+            sidebarId: 'guidesSidebar',
+            position: 'left',
+            label: 'Guides',
+          },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
             href: 'https://pts-project.org',
@@ -102,14 +171,19 @@ const config = {
               {label: 'PiRogue', to: '/docs/PiRogue/overview'},
               {label: 'Colander', to: '/docs/Colander/overview'},
               {label: 'Threatr', to: '/docs/Threatr/overview'},
+              {label: 'Mandolin', to: '/docs/Mandolin/overview'},
+              {label: 'Octopus', to: '/docs/Octopus/overview'},
+              {label: 'Mongoose', to: '/docs/Mongoose/overview'},
             ],
           },
           {
             title: 'Community',
             items: [
-              {label: 'Discord', href: 'https://discord.gg/qGX73GYNdp'},
-              {label: 'Twitter / X', href: 'https://x.com/PiRogueTools'},
               {label: 'GitHub', href: 'https://github.com/PiRogueToolSuite'},
+              {label: 'Mastodon', href: 'https://infosec.exchange/@pts'},
+              {label: 'X', href: 'https://x.com/PiRogueTools'},
+              {label: 'Discord', href: 'https://discord.com/invite/qGX73GYNdp'},
+              {label: 'Open Collective', href: 'https://opencollective.com/pts'},
             ],
           },
           {
@@ -117,11 +191,11 @@ const config = {
             items: [
               {label: 'Website', href: 'https://pts-project.org'},
               {label: 'Blog', to: '/blog'},
-              {label: 'Contact', href: 'https://pts-project.org/contact/'},
+              {label: 'Contact', to: '/contact'},
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} PiRogue Tool Suite — Defensive Lab Agency. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} PiRogue Tool Suite, Defensive Lab Agency. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,

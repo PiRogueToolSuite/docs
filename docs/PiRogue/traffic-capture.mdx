@@ -2,21 +2,50 @@
 sidebar_position: 7
 ---
 
-
 # Capture network traffic
 
-With the PiRogue, it is quite easy to capture the entire network traffic of any device connected to its Wi-Fi network. To capture the network traffic, we use the command tcpdump.
+The [dashboard](/docs/PiRogue/dashboard) shows the last 5 days of traffic. To keep the traffic for longer, or to open it in a tool like [Wireshark](https://www.wireshark.org/), record it in a **PCAP** file.
 
-[Have a look to the guide dedicated to capturing network traffic →](/guides/g2)
+:::tip[Step-by-step]
 
-The command 
-```bash
-$ tcpdump -i wlan0 -w $(date +%Y%m%d%H%M)_capture.pcap
+[Follow the guide dedicated to capturing and analyzing network traffic →](/guides/capture-and-analyze-traffic)
+
+:::
+
+## Start a capture
+Connect to your PiRogue and run:
+
+```bash title="Record the traffic of the Wi-Fi network into a file"
+sudo tcpdump -i wlan0 -w $(date +%Y%m%d%H%M)_capture.pcap
 ```
-instructs the `tcpdump` utility to capture network traffic from the wireless interface `wlan0` and store the captured data in a file named `capture.pcap`.
 
-**tcpdump** is a network packet analyzer that allows users to capture and inspect network traffic in real-time. It operates by directly interacting with the network interface card (NIC) and capturing the raw data packets that flow through it. These packets contain information about the source and destination of the communication, the type of protocol used, and the data being transmitted.
+Press `Ctrl + C` to stop. The file is named after the date and time of the start, for example `202609251430_capture.pcap`.
 
-**PCAP** (Packet Capture) is a file format specifically designed for storing captured network traffic. It encapsulates the raw data packets in a structured format, preserving the packet headers, payload data, and timestamps. PCAP files serve as valuable sources of information for network troubleshooting, performance analysis, and security investigations.
+| Part | Meaning |
+|------|---------|
+| `tcpdump` | The tool that records network packets |
+| `-i wlan0` | The interface to listen to: the Wi-Fi interface of the PiRogue, the one your device is connected to |
+| `-w <file>` | Write the packets to this file, in PCAP format |
+| `$(date +%Y%m%d%H%M)` | Inserts the current date and time in the file name, so captures never overwrite each other |
 
-In this specific command, `-i wlan0` specifies the network interface to monitor, which in this case is the wireless interface `wlan0` of the PiRogue. The `-w capture.pcap` option instructs tcpdump to write the captured packets to a file named `capture.pcap` in the PCAP format. Once the capture is complete, the resulting PCAP file can be analyzed using various network analysis tools such as Wireshark to gain insights into network behavior, identify anomalies, or investigate security incidents.
+:::note[Which interface?]
+
+`wlan0` applies to a PiRogue in access point mode. In other modes, list your interfaces with `ip -br link` and pick the one the analyzed device uses.
+
+:::
+
+## Get the file on your computer
+```bash title="Run on your computer"
+scp pi@<PiRogue IP address>:~/202609251430_capture.pcap .
+```
+
+Not sure how to find the IP address? See [Useful commands](/docs/PiRogue/useful-commands#find-the-ip-address-of-your-pirogue).
+
+## Analyze it
+Open the PCAP file with Wireshark. To decrypt TLS traffic from an Android app, see [Mobile app analysis](/docs/PiRogue/app-analysis).
+
+:::info[What is a PCAP?]
+
+A PCAP (Packet Capture) file stores the raw network packets with their headers, payload and timestamps. It is the standard format for network troubleshooting and security investigations.
+
+:::

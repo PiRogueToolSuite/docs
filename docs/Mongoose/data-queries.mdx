@@ -1,0 +1,54 @@
+---
+sidebar_position: 7
+---
+
+
+# Data queries
+
+Mongoose stores the enriched events in a SQLite database (see [`database_path`](/docs/Mongoose/configuration#storage)). The following examples show how to query it. The fields are described in [Data models](/docs/Mongoose/data-models).
+
+## Get network flows
+
+Get the network flows of a given IP address:
+
+```sql
+SELECT
+  time AS Time,
+  application_category_name AS Category,
+  application_name AS Application,
+  risk AS Risk,
+  json_extract(enrichment, '$.geoip.country') AS Country,
+  json_extract(enrichment, '$.src_hostname') AS "Src hostname",
+  src_ip AS Source,
+  json_extract(enrichment, '$.dst_hostname') AS "Dst hostname",
+  dst_ip AS Destination,
+  requested_server_name AS Request,
+  bidirectional_bytes AS "I/O"
+FROM network_dpi
+WHERE src_ip == "<client IP>" OR dst_ip == "<client IP>"
+ORDER BY timestamp DESC;
+```
+
+## Get security alerts
+
+Get the security alerts of a given IP address:
+
+```sql
+SELECT
+  time AS Time,
+  category AS Category,
+  severity AS Severity,
+  json_extract(enrichment, '$.geoip.country') AS Country,
+  src_ip AS Source,
+  dst_ip AS Destination,
+  signature AS Signature
+FROM network_alert
+WHERE src_ip == "<client IP>" OR dst_ip == "<client IP>"
+ORDER BY timestamp DESC;
+```
+
+:::tip
+
+Join the two tables on `community_id` to see which flows triggered an alert, see [Data correlation](/docs/Mongoose/correlation#linking-a-dpi-record-to-its-alerts).
+
+:::

@@ -1,0 +1,168 @@
+---
+sidebar_position: 4
+---
+
+
+# Admin web interface
+
+:::caution[PiRogue version >=2.0.0]
+
+This documentation only applies when the package `pirogue-base` version `>=2.0.0` is installed.
+The web interface requires `pirogue-admin-client` version `>=2.0.8`.
+
+:::
+
+The **PiRogue Admin Web** lets you configure and operate your PiRogue from a browser, without using the command line. It offers the same features as the [`pirogue-admin-client`](/docs/PiRogue/version-2.x/configuration#administration-tool) tool, in a graphical interface.
+
+The web interface is served next to the dashboard:
+
+| Service | Address |
+|---------|---------|
+| Dashboard | `http://<PiRogue IP address>/dashboard` |
+| Administration | `http://<PiRogue IP address>/admin` |
+
+:::info
+
+The same administration component is used by [Colander](/docs/Colander/advanced/pirogue-fleet) to manage the PiRogues of your fleet.
+
+:::
+
+## Upgrade your PiRogue
+
+The web interface is delivered by the `pirogue-admin-web` package. On an existing PiRogue, [upgrade your system](/docs/PiRogue/advanced/operating-system#upgrade) to get it:
+
+```bash
+sudo apt update
+sudo apt dist-upgrade
+```
+
+:::tip
+
+If a section of the interface displays *"This PiRogue has successfully been contacted but the current pirogue-admin version does not support this feature"*, your PiRogue is not up to date. Upgrade it as described above.
+
+:::
+
+## Log in
+
+The interface asks for a token. Two kinds of tokens are accepted:
+
+* the **administration token**, which gives access to all the features
+* a **user access token**, which only gives access to the features granted to it, see [User accesses](#user-accesses)
+
+To get the administration token, run this command on your PiRogue:
+
+```shell title="Get the administration token"
+pirogue-admin-client access get-administration-token
+```
+
+Paste the token in the **Token** field and click **Login**. If the token is not valid, the interface displays *"Unable to login. Please try again."*.
+
+## Sections
+
+The menu on the left is organized in two groups. A section is only displayed when the token used to log in has the permissions it requires, so a user access token can show a reduced menu.
+
+### Information
+
+| Section | Description |
+|---------|-------------|
+| **Status** | State of the PiRogue services. |
+| **Configuration** | Current configuration of the PiRogue (read-only), the same as `pirogue-admin-client system get-configuration`. |
+| **Packages** | Installed PiRogue packages and their versions. Useful to check at a glance whether a system update is needed. |
+| **Network** | Devices connected to the isolated interface, and ports currently open on it. |
+
+### Configuration
+
+| Section | Description |
+|---------|-------------|
+| **System** | Hostname, locale, time zone and password of the dashboard. |
+| **Network** | Public access of the administration (domain name and contact email), Wi-Fi configuration and open ports of the isolated network. |
+| **Access** | Management of the [user accesses](#user-accesses). |
+| **VPN** | Management of the WireGuard peers, see [below](#vpn). |
+| **Suricata** | Management of the Suricata rules sources, see [below](#suricata). |
+
+### VPN
+
+Available when the PiRogue [operating mode](/docs/PiRogue/version-2.x/configuration#operating-modes) is *VPN*.
+
+* The **Active Peers list** shows all the WireGuard peers. Click **New** to create a peer or **Delete** to remove the selected one.
+* For the selected peer, **Keys** displays its public key, private key and IPv4 address.
+* **Configuration** displays the WireGuard configuration of the peer as a **QR code** and as text. The person using the VPN only has to scan the QR code with the WireGuard application. See [Manage WireGuard peers](/docs/PiRogue/version-2.x/configuration#manage-wireguard-peers).
+
+### Suricata
+
+The **Rules sources** list shows the Suricata rule sets known by the PiRogue. Select one to see its **Details**: name, URL, state, type, summary, vendor, license and parameters.
+
+* Click **Enable** to activate a source or **Disable** to deactivate it. Some sources need parameters before they can be enabled, in which case the interface displays a warning.
+* Use **Create custom source** to add your own source with a name and a URL.
+
+## User accesses
+
+Sharing the administration token gives full control of the PiRogue. To apply the principle of least privilege, create **user accesses**: each one has its own token and a list of permissions, and can be revoked at any time without changing the administration token.
+
+In the **Access** section:
+
+* the **User access list** shows the existing accesses. Click **New** to create one (it has no permission by default) or **Delete** to remove the selected one.
+* **Token** displays the token of the selected access. Click **Regenerate token** to revoke the current one and issue a new one.
+* **Permissions** lists the permissions that can be granted. Select them and click **Apply changes**.
+
+Permissions are named `Service:Permission`, for instance `System:GetStatus` (see the status) or `Network:ListVPNPeers` (see the VPN peers). Each section of the interface requires specific permissions, for example:
+
+| Section | Required permissions |
+|---------|----------------------|
+| Status | `System:GetStatus` |
+| Configuration | `System:GetConfiguration` |
+| Packages | `System:GetPackagesInfo` |
+| Network (information) | `Network:ListConnectedDevices`, `Network:ListIsolatedOpenPorts` |
+| VPN | `Network:ListVPNPeers` (`Network:AddVPNPeer` and `Network:DeleteVPNPeer` to create and delete peers) |
+| Suricata | `Services:ListSuricataRulesSources` |
+| Access | `Access` |
+
+### With the command line
+
+The same operations are available with `pirogue-admin-client`:
+
+```shell title="Manage the user accesses"
+# List, create and delete user accesses
+pirogue-admin-client access list-user-accesses
+pirogue-admin-client access create-user-access
+pirogue-admin-client access get-user-access <idx>
+pirogue-admin-client access delete-user-access <idx>
+
+# Revoke the token of a user access and generate a new one
+pirogue-admin-client access reset-user-access-token <idx>
+
+# Show the access (and permissions) associated with the token in use
+pirogue-admin-client access my-user-access
+```
+
+List the available permissions, then grant or remove them:
+
+```shell title="Manage the permissions of a user access"
+pirogue-admin-client access get-permission-list
+
+# Add all the permissions of the service System
+pirogue-admin-client access set-user-access-permissions -- 8 +System
+
+# Remove one permission
+pirogue-admin-client access set-user-access-permissions -- 8 -System:GetConfiguration
+```
+
+The syntax of a permission is `[MODIFIER]SERVICE[:PERMISSION]`:
+
+| Modifier | Effect |
+|----------|--------|
+| `+` | Adds the permission. |
+| `-` | Removes the permission. |
+| *none* | Sets the permission and removes all the others. |
+
+:::caution
+
+Use `--` before the user access index so that a permission starting with `-` is not interpreted as an option.
+
+:::
+
+## Remote access
+
+The administration interface follows the same network rules as the command line tool. To use it from the Internet, [make the PiRogue accessible from the Internet](/docs/PiRogue/version-2.x/configuration#make-the-pirogue-accessible-from-the-internet) first, then open `https://<your domain name>/admin`.
+
+{/* TODO(verify): confirm the /admin URL and TLS behavior once public access is enabled (pirogue-external-exposure proxies /admin/ to the admin web service on localhost:4242). */}

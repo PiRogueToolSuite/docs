@@ -1,0 +1,50 @@
+**You need:** a machine with a fresh **Debian 12** installation, on `amd64` or `arm64`, with at least 4 GB of RAM and 40 GB of disk, and Internet access. It can be a physical machine, a virtual machine, or a Raspberry Pi. The PiRogue changes the network configuration of the machine, so use a dedicated one.
+
+Connect to it with SSH and run the following block:
+
+```bash title="Install PiRogue on Debian 12"
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install wget
+sudo wget -O /etc/apt/sources.list.d/pirogue.list https://pts-project.org/debian-12/pirogue.list
+sudo wget -O /etc/apt/trusted.gpg.d/pirogue.gpg   https://pts-project.org/debian-12/pirogue.gpg
+sudo apt-get update
+sudo apt-get install pirogue-base
+```
+
+If the installer asks whether non-superusers may capture network traffic, answer **Yes**.
+
+:::info
+
+The operating mode is selected automatically from the network interfaces of the machine:
+
+* a second **Wi-Fi** interface: *Access point*, the devices to analyze connect to the Wi-Fi network of the PiRogue
+* a second **Ethernet** interface: *Appliance*
+* a **single interface**: *VPN*, the devices connect with WireGuard. This is the simplest way to try a PiRogue in a virtual machine.
+
+See [Installation](/docs/PiRogue/installation) for the details of each mode.
+
+:::
+
+###### Check that it works
+Display the configuration of your PiRogue, including the generated passwords:
+
+```bash
+pirogue-admin-client system get-configuration
+```
+
+Check that `SYSTEM_OPERATING_MODE` is the mode you expect, and note `DASHBOARD_PASSWORD` (also displayed with `pirogue-admin-client dashboard get-configuration`) and, in access point mode, `WIFI_PASSPHRASE`.
+
+Then open the dashboard in your browser, with the user `admin` and the password above:
+
+```txt
+https://<EXTERNAL_ADDRESS>/dashboard
+```
+
+Your browser warns about the certificate because it is self-signed. For a first try, accept the warning and continue.
+
+###### What's next
+* Administer your PiRogue from the browser at `https://<EXTERNAL_ADDRESS>/admin`, see the [admin web interface](/docs/PiRogue/version-2.x/admin-web).
+* Capture and analyze the traffic of a device, see [Traffic capture](/docs/PiRogue/traffic-capture).
+* Connect a phone to a PiRogue used as a VPN, see [Installation](/docs/PiRogue/installation).
+* Enroll your PiRogue in Colander, see [PiRogue fleet](/docs/Colander/advanced/pirogue-fleet).

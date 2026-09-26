@@ -1,0 +1,8 @@
+{
+  "label": "Mandolin",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Mandolin is the micro-service that analyzes and converts files, used by Colander for offline artifact analysis."
+  }
+}

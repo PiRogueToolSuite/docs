@@ -1,0 +1,278 @@
+---
+sidebar_position: 2
+---
+
+
+# Configuration
+
+Mongoose is configured with a single YAML file. All the keys live under a top-level `configuration` key. This page describes the most important keys controlling collectors, enrichment, forwarders, storage and runtime behavior.
+
+```yaml
+configuration:
+  database_path: "/var/lib/mongoose/mongoose.db"
+  extra_configuration_dir: "/var/lib/mongoose/"
+
+  history:
+    max_duration_days: 14
+
+  collector:
+    suricata:
+      socket_path: "/run/suricata.socket"
+      collect_alerts: true
+      collect_netflow: false
+      enable: true
+
+    nf_stream:
+      interface: "enp5s0"
+      active_timeout: 2
+      max_nflows: 0
+      enable: true
+
+  enrichment:
+    geoip:
+      enable: true
+
+  forwarder:
+    discord:
+      - url: https://discord.com/api/webhooks/...
+        username: mongoose-bot
+        avatar_url: https://example.org/avatar.png
+        allowed_mentions:
+          parse: []
+        enable: false
+
+    webhooks:
+      - url: https://example.org/hook
+        headers:
+          X-API-Key: secret
+        auth_type: header
+        auth_token: s3cr3t
+        auth_header_name: X-API-Key
+        verify_ssl: true
+        retry_count: 3
+        retry_delay: 5.0
+        timeout: 10.0
+        topics: ["enriched-network-dpi", "enriched-network-alert"]
+        enable: false
+```
+
+## File layout
+
+Mongoose reads its configuration from a YAML file. The usual places to keep it are:
+
+* an application-specific file in `/etc` or under `/var/lib` when run as a system service, or
+* a path passed with the `--config` CLI option.
+
+When the application starts it resolves the configuration from a single YAML file that is validated against the application configuration model. Some components (notably the webhook forwarders) can also be configured via [drop-in directories](#multiple-webhook-configurations).
+
+## Top-level settings
+
+| Key | Description |
+|-----|-------------|
+| `collector` | Per-collector configuration (`suricata` and `nf_stream`). |
+| `enrichment` | Enrichment configuration (for example `geoip`). |
+| `forwarder` | Forwarder configuration (`file`, `webhooks`, `discord`). |
+| `database_path` | Path to the SQLite database file. |
+| `history` | Optional history retention configuration. |
+| `extra_configuration_dir` | Directory used for drop-in configuration files. |
+| `cache` | Cache configuration. |
+
+## Collectors
+
+Collectors are responsible for ingesting network events or flow records.
+
+```yaml
+collector:
+  suricata:
+    socket_path: /run/suricata.socket
+    collect_alerts: true
+    collect_netflow: false
+    enable: true
+  nf_stream:
+    interface: eth0
+    active_timeout: 120
+    enable: true
+```
+
+### `collector.suricata`
+
+| Setting | Description |
+|---------|-------------|
+| `socket_path` | Path to the Unix socket file Mongoose creates for Suricata's events. See [Suricata integration](/docs/Mongoose/suricata-integration). |
+| `collect_alerts` | Enable alerts ingestion. |
+| `collect_netflow` | Enable netflow collection. |
+| `enable` | Toggle the Suricata collector on or off. |
+
+### `collector.nf_stream`
+
+| Setting | Description |
+|---------|-------------|
+| `interface` | Network interface to capture from. Can be overridden with `mongoosed --interface`. |
+| `active_timeout` | Seconds before an active flow is considered expired. |
+| `max_nflows` | Maximum number of flows to process (`0` for no limit). |
+| `enable` | Toggle the NFStream collector on or off. |
+
+## Enrichment
+
+Enrichment runs between collection and forwarding to add derived fields and context. See [Enrichment](/docs/Mongoose/enrichment) for the list of enrichers.
+
+### GeoIP
+
+```yaml
+enrichment:
+  geoip:
+    source: "ip66"             # "ip66" (default) or "maxmind"
+    maxmind_db_path: "/var/lib/GeoIP"
+    maxmind_db:
+      - "GeoLite2-ASN.mmdb"
+      - "GeoLite2-City.mmdb"
+      - "GeoLite2-Country.mmdb"
+    enable: true
+```
+
+| Setting | Description |
+|---------|-------------|
+| `source` | GeoIP database provider: `ip66` (default) or `maxmind`. |
+| `maxmind_db_path` | Path to the GeoIP databases. |
+| `maxmind_db` | List of GeoIP databases to use. |
+| `enable` | Toggle the GeoIP enricher. |
+
+## Forwarders
+
+Forwarders (also called sinks) deliver processed events to external systems.
+
+### File forwarder
+
+Save processed events into files:
+
+```yaml
+forwarder:
+  file:
+    output_dir: /var/log/mongoose
+    topics: ["enriched-network-dpi", "enriched-network-alert"]
+    prefix: mongoose-
+    enable: true
+```
+
+| Setting | Description |
+|---------|-------------|
+| `output_dir` | Directory where output files are written. |
+| `topics` | Topics to write to files (controls filtering). |
+| `prefix` | Filename prefix applied to generated files. |
+| `enable` | Enable or disable the file forwarder. |
+
+### Webhook forwarder
+
+```yaml
+forwarder:
+  webhooks:
+    - url: https://example.org/hook
+      headers:
+        X-API-Key: secret
+      auth_type: header
+      auth_token: s3cr3t
+      auth_header_name: X-API-Key
+      verify_ssl: true
+      retry_count: 3
+      retry_delay: 5.0
+      timeout: 10.0
+      enable: true
+      topics: ["enriched-network-dpi"]
+      mode: immediate
+```
+
+| Setting | Description |
+|---------|-------------|
+| `url` | Destination URL for the webhook. |
+| `headers` | Extra HTTP headers to include in each request. |
+| `auth_type` | Authentication mode: `none`, `basic`, `bearer` or `header`. |
+| `auth_token` | Token or credential. Required when `auth_type` is not `none`. For `basic`, the token must be `user:pass`. |
+| `auth_header_name` | Header name to use when `auth_type` is `header`. |
+| `verify_ssl` | Whether to verify TLS/SSL certificates. |
+| `retry_count` | Number of retries on failure. |
+| `retry_delay` | Delay between retries in seconds. |
+| `timeout` | Request timeout in seconds. |
+| `enable` | Enable or disable this webhook entry. |
+| `topics` | Topics to forward to this endpoint. |
+| `mode` | Forwarding mode: `immediate`, `bulk` or `periodic`. |
+| `bulk_size` | When `mode` is `bulk`, maximum items per batch. |
+| `periodic_interval` | When `mode` is `periodic`, seconds between sends. |
+| `periodic_rate` | When `mode` is `periodic`, maximum items per interval. |
+
+The forwarding modes are:
+
+* `immediate`: each event is delivered individually as it is processed. Use when low latency is required and the endpoint can handle the load.
+* `bulk`: events are batched until `bulk_size` is reached and then sent as a group. Use to reduce per-request overhead.
+* `periodic`: events are sent periodically according to `periodic_interval` and limited by `periodic_rate`. Use for regular heartbeat-like deliveries or to rate-limit traffic.
+
+#### Multiple webhook configurations
+
+Mongoose supports loading drop-in configuration fragments from the directory set by `extra_configuration_dir` (default `/var/lib/mongoose/`). The conventional place for webhook snippets is `/var/lib/mongoose/webhook.d/`. Each file contains a YAML fragment matching the webhook forwarder schema. The engine watches this directory: a forwarder is activated when a file is created and deactivated when it is deleted, no restart required.
+
+```yaml
+# /var/lib/mongoose/webhook.d/10-internal.yaml
+url: https://internal.example.local/hook
+auth_type: header
+auth_token: s3cr3t
+auth_header_name: X-Internal-Token
+retry_count: 5
+retry_delay: 2.0
+timeout: 8.0
+enable: true
+```
+
+:::info[Filename conventions]
+
+* Files are loaded in lexicographic order. Prefix files with numbers to control the load order (`10-internal.yaml`, `20-external.yaml`).
+* When a file contains lists (for example `forwarder.webhooks`), the entries are appended in load order. If a file contains scalar values for the same key as another file, the later file overrides the earlier values.
+
+:::
+
+### Discord forwarder
+
+Discord forwarders are a list under `forwarder.discord`. They reuse the webhook fields and add Discord-specific options.
+
+```yaml
+forwarder:
+  discord:
+    - url: https://discord.com/api/webhooks/...
+      username: mongoose-bot
+      avatar_url: https://example.org/avatar.png
+      allowed_mentions:
+        parse: []
+      enable: true
+```
+
+| Setting | Description |
+|---------|-------------|
+| *(webhook settings)* | All the settings of the webhook forwarder. |
+| `username` | Override the displayed username for webhook messages. |
+| `avatar_url` | Avatar image URL for the webhook message. |
+| `allowed_mentions` | Control which mentions are allowed. Default is `{"parse": []}` to avoid mass pings. |
+
+## Storage
+
+```yaml
+database_path: "mongoose.db"
+
+history:
+  max_duration_days: 14  # keep records for at most 14 days
+  max_records: null      # optional hard cap on row count per table
+  enable: true
+
+cache:
+  severity:
+    max_size: 1024       # maximum entries in the severity LRU cache
+    ttl_seconds: null    # optional TTL; null means entries never expire
+    enable: true
+```
+
+| Setting | Description |
+|---------|-------------|
+| `database_path` | Filesystem path to the SQLite database file. |
+| `history.max_records` | Maximum records to retain in history tables. |
+| `history.max_duration_days` | Maximum number of days to retain records. |
+| `history.enable` | Toggle the history retention logic. |
+| `cache.severity.max_size` | Maximum entries in the severity LRU cache. |
+| `cache.severity.ttl_seconds` | Optional TTL of the cache entries; `null` means they never expire. |
+| `extra_configuration_dir` | Directory used to load drop-in YAML fragments (e.g. `webhook.d`). |

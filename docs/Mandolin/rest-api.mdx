@@ -1,0 +1,104 @@
+---
+sidebar_position: 3
+---
+
+
+# REST API
+
+Mandolin exposes a REST API described by an [OpenAPI](https://www.openapis.org) specification. When Mandolin is running, the interactive documentation is served by the service itself.
+
+All the operations are `POST` requests with a `multipart/form-data` body containing the file to process in the field `file`.
+
+| Endpoint | Additional fields | Description |
+|----------|-------------------|-------------|
+| `POST /analyzer/tika` | | Extract the content and the metadata of the file. |
+| `POST /analyzer/clamav` | | Scan the file with ClamAV. |
+| `POST /analyzer/yara` | `rules` | Apply the given Yara rules to the file. |
+| `POST /converter/thumbnail` | | Generate the thumbnail of an image. The response is the image. |
+| `GET /` | | Health check. |
+
+## Analyze a file
+
+```bash title="Extract the content of a file"
+curl -X POST http://127.0.0.1:8888/analyzer/tika -F "file=@report.pdf"
+```
+
+```bash title="Scan a file with ClamAV"
+curl -X POST http://127.0.0.1:8888/analyzer/clamav -F "file=@sample.bin"
+```
+
+```bash title="Apply Yara rules to a file"
+curl -X POST http://127.0.0.1:8888/analyzer/yara \
+  -F "file=@sample.bin" \
+  -F "rules=<rules.yar"
+```
+
+## Response
+
+The analyzers return a document with the following structure:
+
+```json title="Response of the ClamAV analyzer"
+{
+  "success": true,
+  "content": null,
+  "error": null,
+  "error_short": null,
+  "processors": {
+    "clamav": {
+      "success": true,
+      "processor_name": "clamav",
+      "processor_url": "/analyzer/clamav",
+      "processor_description": "...",
+      "error": null,
+      "error_short": null,
+      "metadata": null,
+      "analysis": {
+        "infected": false,
+        "description": null,
+        "filename": "sample.bin",
+        "extra": null
+      }
+    }
+  }
+}
+```
+
+The `processors` object contains one entry per processor, and the result of the analysis is in its `analysis` field:
+
+| Processor | Fields of `analysis` |
+|-----------|----------------------|
+| `tika` | `content_length`, `created`, `title`, `type`, `language`, `extra`. The extracted text is returned in the field `content`. |
+| `clamav` | `infected`, `description` (the name of the threat when infected), `filename`, `extra`. |
+| `yara` | `rules` and `matches`: for each match, the `rule`, its `tags`, `namespace`, `meta` and the matching `strings`. |
+
+When a processor fails, `success` is `false` and `error` (and `error_short`) describe the problem. Requests are rejected with a `400` error when the file is larger than `MAX_FILE_SIZE`, and, for Yara, when no rules or invalid rules are provided.
+
+## Thumbnails
+
+The thumbnail endpoint returns a PNG image. Its behavior is controlled by query parameters:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `width` | `300` | Width of the thumbnail in pixels. |
+| `height` | `200` | Height of the thumbnail in pixels. |
+| `strategy` | `pad` | Resizing strategy: `pad`, `fit`, `cover` or `contain`. |
+| `color` | | Background color used to pad the image. |
+
+```bash title="Generate a 256x256 thumbnail"
+curl -X POST "http://127.0.0.1:8888/converter/thumbnail?width=256&height=256&strategy=fit" \
+  -F "file=@photo.jpg" -o thumbnail.png
+```
+
+## Python client
+
+```python title="Extract the content of a file with the Python client"
+import mandolin_python_client
+
+configuration = mandolin_python_client.Configuration(host="http://127.0.0.1:8888")
+
+with mandolin_python_client.ApiClient(configuration) as api_client:
+    analyzers = mandolin_python_client.AnalyzersApi(api_client)
+    # the file is given by its path
+    result = analyzers.analyze_with_tika_analyzer_tika_post("report.pdf", _request_timeout=5 * 60)
+    print(result.content)
+```

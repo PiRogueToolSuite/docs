@@ -1,0 +1,49 @@
+---
+sidebar_position: 1
+---
+
+
+# Overview
+
+<div style={{textAlign: 'center', margin: '1.5rem 0'}}>
+  <img src="/img/logos/octopus.png" alt="Octopus logo" style={{width: '120px', height: '120px'}} />
+</div>
+
+**Octopus** is a dynamic analysis framework for Android applications, part of the PiRogue Tool Suite. It instruments the behavior of Android apps using [Frida](https://frida.re) and records everything the application does while it runs: network traffic, decrypted TLS sessions, socket operations, cryptographic operations and more.
+
+Octopus provides the following capabilities:
+
+* **Screen recording**: capture the device screen during the analysis.
+* **Full network capture**: on-device network capture using `tcpdump`.
+* **TLS interception**: decrypt TLS traffic with [friTap](https://github.com/fkie-cad/friTap), without altering the application or the network traffic.
+* **Socket tracing**: log all socket operations (connect, read, write) along with their stack trace.
+* **Cryptographic logging**: capture cryptographic keys and operations.
+* **API hooking**: intercept various Android APIs (Advertising IDs, device information, etc.).
+
+Octopus communicates with a running `adb-server`, either locally or remotely. The target device can be a physical Android phone or an emulator, accessible via USB or TCP.
+
+## Requirements
+
+* **Python** 3.11 or newer.
+* A **rooted** Android device (physical phone, tablet or [emulator](/docs/Octopus/android-emulator)).
+* **ADB** installed and accessible on your host.
+
+## Installation
+
+```bash
+pip install pirogue-octopus
+```
+
+:::tip[Did you know?]
+
+Octopus is the engine behind the `pirogue-intercept-*` helpers available on the PiRogue. See the recipe [How to intercept and decrypt TLS traffic](/docs/Recipes/network-tls-interception).
+
+:::
+
+## What's next?
+
+* [Usage](/docs/Octopus/usage): start an instrumentation session and tune it with the CLI options.
+* [Android emulator](/docs/Octopus/android-emulator): create a rooted emulator to run Octopus without a physical device.
+* [TLS decryption](/docs/Octopus/tls-decryption): how Octopus extracts TLS keys and how to use them.
+* [Outputs](/docs/Octopus/outputs): description of every file produced by a session.
+* [Development](/docs/Octopus/development): set up a development environment.

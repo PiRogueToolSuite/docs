@@ -1,0 +1,58 @@
+**You need:** Docker with Docker Compose, `curl` and `openssl`.
+
+Copy and paste the following block in a terminal. It downloads the configuration, generates new secrets, starts Threatr, creates an administrator and creates an API key.
+
+```bash title="Deploy Threatr locally"
+mkdir -p threatr && cd threatr
+BASE=https://raw.githubusercontent.com/PiRogueToolSuite/threatr/refs/heads/main/deployment
+curl -fsSLO $BASE/.env
+curl -fsSLO $BASE/threatr-local.yml
+
+# Generate new secrets
+sed -i "s|^DJANGO_SECRET_KEY=.*|DJANGO_SECRET_KEY=$(openssl rand -hex 32)|; s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 24)|" .env
+
+# Start Threatr and wait until it answers
+docker compose -f threatr-local.yml up -d
+until curl -s -o /dev/null http://127.0.0.1:9080/admin/login/; do sleep 2; done
+
+# Create the administrator and an API key
+ADMIN_PASSWORD=$(openssl rand -hex 12)
+docker compose -f threatr-local.yml run --rm -e DJANGO_SUPERUSER_PASSWORD="$ADMIN_PASSWORD" \
+  threatr-local-front python manage.py createsuperuser --noinput --username admin --email admin@localhost
+API_KEY=$(docker compose -f threatr-local.yml run --rm threatr-local-front python manage.py drf_create_token admin | awk '/Generated token/{print $3}')
+
+echo "Administration panel: http://127.0.0.1:9080/admin (user: admin, password: $ADMIN_PASSWORD)"
+echo "API key: $API_KEY"
+```
+
+:::note
+
+On macOS, replace `sed -i` with `sed -i ''`.
+
+:::
+
+###### Check that it works
+List the available integrations with the API key displayed at the end of the block:
+
+```bash
+curl -s http://127.0.0.1:9080/api/modules/ -H "Authorization: Token $API_KEY"
+```
+
+Every integration is listed with `"configured": 0`: no third-party service is connected yet. Ask for threat intelligence about an observable:
+
+```bash
+curl -s -X POST http://127.0.0.1:9080/api/request/ \
+  -H "Content-Type: application/json" -H "Authorization: Token $API_KEY" \
+  -d '{"super_type": "observable", "type": "sha256", "value": "854774a198db490a1ae9f06d5da5fe6a1f683bf3d7186e56776516f982d41ad3", "force": false}'
+```
+
+###### What's next
+Threatr only returns data from the services you connect. Add your VirusTotal, OTX, Shodan, Scarlet Shark or MISP credentials in the administration panel, see [Integrations](/docs/Threatr/integrations). To go further, read the [deployment](/docs/Threatr/deployment) and the [REST API](/docs/Threatr/rest-api) pages.
+
+To stop Threatr, run `docker compose -f threatr-local.yml stop`. To remove it with all its data, run `docker compose -f threatr-local.yml down -v`.
+
+:::caution[Security]
+
+This deployment is meant for a local use. Threatr listens on all the interfaces of the machine and must not be exposed to the Internet.
+
+:::

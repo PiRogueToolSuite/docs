@@ -1,0 +1,9 @@
+{
+  "label": "Advanced",
+  "position": 20,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Deeper Colander topics: data import/export, knowledge sharing, PiRogue fleet integration, and the REST API."
+  }
+}

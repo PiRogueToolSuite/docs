@@ -1,0 +1,115 @@
+---
+sidebar_position: 2
+---
+
+
+# Deployment
+
+:::caution[Security]
+
+Mandolin processes untrusted files and has no authentication. It must not be exposed to the Internet, and should only be reachable by the services using it.
+
+:::
+
+When you [deploy Colander](/docs/Colander/deployment) with the Ansible playbooks, Mandolin (and Apache Tika) are deployed for you. This page describes how to deploy Mandolin on its own.
+
+### Requirement
+Docker and Docker Compose must be installed on the machine hosting Mandolin.
+
+### Deployment
+###### 1. Create the Docker Compose file
+Save the following content in a file named `docker-compose.yml`:
+
+```yaml title="docker-compose.yml"
+services:
+  tika:
+    image: apache/tika:3.0.0.0-full
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9998/tika" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  clamav:
+    mem_reservation: 262144000
+    mem_limit: 1048576000
+    image: ajilaag/clamav-rest
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9000/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  mandolin:
+    image: ghcr.io/piroguetoolsuite/mandolin:main
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8000"
+    depends_on:
+      clamav:
+        condition: service_healthy
+      tika:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:8000/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      - TIKA_URL=http://tika:9998/
+      - CLAMAV_URL=http://clamav:9000
+      - MAX_FILE_SIZE=250000000  # 250MB
+```
+
+:::note
+
+The example publishes the port on `127.0.0.1` only. Change it if other machines have to reach Mandolin, and restrict access with a firewall.
+
+:::
+
+###### 2. Start Mandolin
+```bash
+docker compose up -d
+```
+
+###### 3. Check that Mandolin is running
+```bash
+curl http://127.0.0.1:8888/
+```
+
+The answer is `{"msg":"Finely slice your files"}`.
+
+### Configuration
+
+| Environment variable | Description |
+|----------------------|-------------|
+| `TIKA_URL` | Address of the Apache Tika server. |
+| `CLAMAV_URL` | Address of the ClamAV server, **without a trailing slash**. |
+| `MAX_FILE_SIZE` | Maximum size in bytes of the files that can be analyzed (default: `250000000`). |
+
+:::caution
+
+Do not add a trailing slash to `CLAMAV_URL`. Mandolin appends `/v2/scan` to it, and the resulting `//v2/scan` is redirected by ClamAV, which makes every antivirus scan fail with `success: false` and an empty error.
+
+:::
+
+### Update
+```bash
+docker compose pull
+docker compose up -d
+```
+
+### Stop
+```bash
+docker compose stop
+```
+
+## Use it with Colander
+
+To make Colander use a Mandolin deployed separately, set these environment variables in Colander's configuration:
+
+| Environment variable | Description |
+|----------------------|-------------|
+| `USE_MANDOLIN` | Enables the analysis of artifacts (default: `True`). |
+| `MANDOLIN_BASE_URL` | Address of Mandolin (default: `http://mandolin:8000`). |
+
+To deploy Colander without Mandolin, see [Per host customization](/docs/Colander/deployment#inventory-file).

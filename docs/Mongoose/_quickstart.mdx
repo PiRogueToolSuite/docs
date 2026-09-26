@@ -1,0 +1,64 @@
+:::tip[On a PiRogue]
+
+Mongoose is installed with `pirogue-base` on a PiRogue, there is nothing to deploy. This quick start is for running it on its own.
+
+:::
+
+**You need:** a Linux machine with Python **3.11 to 3.13** and `sudo`, since capturing packets requires elevated privileges.
+
+Set the name of the network interface to monitor (`ip -br link` lists them), then copy and paste the block. It installs Mongoose in its own environment, writes a minimal configuration and starts it. Traffic is captured on the interface, enriched, and written to a file.
+
+```bash title="Run Mongoose"
+IFACE=eth0   # the network interface to monitor
+
+mkdir -p mongoose && cd mongoose
+python3 -m venv .venv
+.venv/bin/pip install pirogue-mongoose
+
+cat > mongoose.yaml <<EOF
+configuration:
+  database_path: "$PWD/mongoose.db"
+  extra_configuration_dir: "$PWD/extra"
+  collector:
+    suricata:
+      enable: false
+    nf_stream:
+      interface: "$IFACE"
+      active_timeout: 2
+      enable: true
+  enrichment:
+    geoip:
+      enable: true
+  forwarder:
+    file:
+      output_dir: "$PWD/out"
+      topics: ["enriched-network-dpi"]
+      prefix: "mongoose-"
+      enable: true
+EOF
+mkdir -p extra out
+
+sudo .venv/bin/mongoosed --config mongoose.yaml
+```
+
+Leave it running and use the network as usual. Press `CTRL + C` to stop.
+
+:::caution
+
+Keep the GeoIP enrichment enabled. In version 1.0.6, disabling it (`enable: false`) makes every event fail in the enrichment stage and nothing is written. The GeoIP database is downloaded automatically at the first start.
+
+:::
+
+###### Check that it works
+In another terminal, watch the enriched network flows as they are written, one JSON document per line:
+
+```bash
+tail -f mongoose/out/mongoose-enriched-network-dpi.json
+```
+
+Each line is a [Network DPI](/docs/Mongoose/data-models#network-dpi) record: source and destination, application, size, direction and geolocation. The same records are stored in the SQLite database `mongoose.db`, see [Data queries](/docs/Mongoose/data-queries).
+
+###### What's next
+* Add Suricata alerts, see [Suricata integration](/docs/Mongoose/suricata-integration).
+* Send the events to your own tools with a webhook, or to Discord, see [Configuration](/docs/Mongoose/configuration#forwarders).
+* Understand the fields, see [Data models](/docs/Mongoose/data-models).

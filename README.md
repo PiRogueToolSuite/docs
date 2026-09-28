@@ -6,7 +6,7 @@ The documentation site of the PiRogue Tool Suite, built with Docusaurus.
 </p>
 <p>
 <a href="https://pts-project.org">Website</a> | 
-<a href="https://docs.pts-project.org">Documentation</a> | 
+<a href="https://pts-project.org/docs/prologue/introduction/">Documentation</a> |
 <a href="https://discord.com/invite/qGX73GYNdp">Support</a>
 </p>
 </div>

@@ -15,8 +15,8 @@ const config = {
   baseUrl: '/',
 
   organizationName: 'PiRogueToolSuite',
-  projectName: 'pts-docs',
-
+  projectName: 'docs',
+  trailingSlash: false,
   onBrokenLinks: 'warn',
 
   markdown: {

@@ -124,7 +124,17 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/pts-logo.png',
+      // image: 'img/pts-logo.png',
+      metadata: [
+        {name: 'description', content: 'PiRogue Tool Suite (PTS) is a comprehensive, open-source digital investigation platform designed for civil society organizations.'},
+        {name: 'keywords', content: 'PiRogue, PTS, mobile forensics, threat analysis, network analysis, Raspberry Pi, spyware, human rights, digital security'},
+        {property: 'og:type', content: 'website'},
+        {property: 'og:site_name', content: 'PiRogue Tool Suite'},
+        {property: 'og:image:alt', content: 'PiRogue Tool Suite - digital investigation platform'},
+        {property: 'og:image:width', content: '1200'},
+        {property: 'og:image:height', content: '630'},
+        {name: 'twitter:card', content: 'summary_large_image'},
+      ],
       colorMode: {
         respectPrefersColorScheme: true,
       },

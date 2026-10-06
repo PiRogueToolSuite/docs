@@ -98,7 +98,7 @@ const config = {
           sidebarPath: './sidebars.js',
           // Keep Docusaurus's default underscore-file exclusion (setting `exclude`
           // explicitly overrides it otherwise), plus our own partials folder.
-          exclude: ['**/_*.{js,jsx,ts,tsx,md,mdx}', '**/_*/**', '**/partials/**'],
+          exclude: ['**/_*.{js,jsx,ts,tsx,md,mdx}', '_*/', '**/_*/**', '**/partials/**'],
           editUrl:
             'https://github.com/PiRogueToolSuite/piroguetoolsuite.github.io/tree/v2/',
         },
@@ -148,10 +148,10 @@ const config = {
             position: 'left',
             label: 'Guides',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
+          // {to: '/blog', label: 'Blog', position: 'left'},
           {
             href: 'https://pts-project.org',
-            label: 'pts-project.org',
+            label: 'Website',
             position: 'right',
           },
           {
@@ -171,9 +171,9 @@ const config = {
               {label: 'PiRogue', to: '/docs/PiRogue/overview'},
               {label: 'Colander', to: '/docs/Colander/overview'},
               {label: 'Threatr', to: '/docs/Threatr/overview'},
-              {label: 'Mandolin', to: '/docs/Mandolin/overview'},
-              {label: 'Octopus', to: '/docs/Octopus/overview'},
-              {label: 'Mongoose', to: '/docs/Mongoose/overview'},
+              // {label: 'Mandolin', to: '/docs/Mandolin/overview'},
+              // {label: 'Octopus', to: '/docs/Octopus/overview'},
+              // {label: 'Mongoose', to: '/docs/Mongoose/overview'},
             ],
           },
           {
@@ -181,7 +181,7 @@ const config = {
             items: [
               {label: 'GitHub', href: 'https://github.com/PiRogueToolSuite'},
               {label: 'Mastodon', href: 'https://infosec.exchange/@pts'},
-              {label: 'X', href: 'https://x.com/PiRogueTools'},
+              // {label: 'X', href: 'https://x.com/PiRogueTools'},
               {label: 'Discord', href: 'https://discord.com/invite/qGX73GYNdp'},
               {label: 'Open Collective', href: 'https://opencollective.com/pts'},
             ],
@@ -190,12 +190,12 @@ const config = {
             title: 'Project',
             items: [
               {label: 'Website', href: 'https://pts-project.org'},
-              {label: 'Blog', to: '/blog'},
-              {label: 'Contact', to: '/contact'},
+              {label: 'Blog', href: 'https://pts-project.org/categories/activity-reports/'},
+              {label: 'Contact', href: 'https://pts-project.org/contact/'},
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} PiRogue Tool Suite, Defensive Lab Agency. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} PiRogue Tool Suite, Defensive Lab Agency.`,
       },
       prism: {
         theme: prismThemes.github,

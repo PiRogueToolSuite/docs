@@ -25,7 +25,7 @@ function HomepageHeader() {
             </div>
           </div>
           <div style={{flexShrink: 0}}>
-            <img src="/img/jojo-le-piranha.svg" alt="Jojo le Piranha, the PTS mascot" style={{width: '200px', height: '200px', objectFit: 'contain'}} />
+            <img src="/img/pts-logo-circle.svg" alt="PiRogue Tool Suite logo" style={{width: '200px', height: '200px', objectFit: 'contain'}} />
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function Home() {
             <div className={styles.toolGrid}>
               <ToolCard
                 title="PiRogue"
-                description="Raspberry Pi-based network router for capturing and analysing mobile device traffic in real-time."
+                description="Network router for capturing and analysing mobile device traffic in real-time."
                 href="/docs/PiRogue/overview"
                 logo="/img/logos/pirogue.svg"
               />
@@ -85,23 +85,25 @@ export default function Home() {
                 href="/docs/Threatr/overview"
                 logo="/img/logos/threatr.svg"
               />
+            </div>
+            <div className={styles.toolGrid}>
               <ToolCard
                 title="Mandolin"
                 description="File analysis micro-service to extract content, scan with antivirus and apply Yara rules, offline."
                 href="/docs/Mandolin/overview"
-                logo="/img/logos/mandolin.png"
+                logo="/img/logos/mandolin-logo.svg"
               />
               <ToolCard
                 title="Octopus"
-                description="Dynamic analysis framework for Android apps: instrument apps with Frida, capture traffic and decrypt TLS."
-                href="/docs/Octopus/overview"
-                logo="/img/logos/octopus.png"
+                description="Dynamic analysis framework for Android apps: instrument apps, capture traffic and decrypt TLS."
+                href="https://pts-project.org/octopus/"
+                logo="/img/logos/octopus-logo.svg"
               />
               <ToolCard
                 title="Mongoose"
-                description="Collect, enrich, store and forward Suricata alerts and network flows from the PiRogue."
-                href="/docs/Mongoose/overview"
-                logo="/img/logos/mongoose.svg"
+                description="Collect, enrich, store and forward Suricata alerts and network flows."
+                href="https://pts-project.org/mongoose/"
+                logo="/img/logos/mongoose-logo.svg"
               />
             </div>
           </div>
